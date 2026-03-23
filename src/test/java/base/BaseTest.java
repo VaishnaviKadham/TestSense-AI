@@ -2,6 +2,7 @@ package base;
 
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.testng.annotations.*;
 
 import utils.ConfigReader;
@@ -25,8 +26,25 @@ public class BaseTest {
         System.out.println("Reading URL from config file");
         String url = ConfigReader.get("url");
 
+        // 🔥 HEADLESS TOGGLE (LOCAL vs CI)
+        // Default = true (for GitHub Actions)
+        String headless = System.getProperty("headless", "true");
+
+        System.out.println("Configuring Chrome options");
+
+        ChromeOptions options = new ChromeOptions();
+
+        if (headless.equalsIgnoreCase("true")) {
+            System.out.println("Running in HEADLESS mode");
+            options.addArguments("--headless=new");
+            options.addArguments("--no-sandbox");
+            options.addArguments("--disable-dev-shm-usage");
+        } else {
+            System.out.println("Running in NORMAL (UI) mode");
+        }
+
         System.out.println("Launching Chrome browser");
-        driver = new ChromeDriver();
+        driver = new ChromeDriver(options);
 
         System.out.println("Browser launched successfully");
 
