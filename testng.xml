@@ -1,0 +1,13 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Suite">
+	<test name="UI">
+		<classes>
+			<class name="tests.AmazonUITests" />
+		</classes>
+	</test>
+	<test name="Functional">
+		<classes>
+			<class name="tests.AmazonFunctionalTests" />
+		</classes>
+	</test>
+</suite>

@@ -1,0 +1,13 @@
+target/
+test-output/
+screenshots/
+
+*.log
+*.class
+*.jar
+
+.settings/
+.project
+.classpath
+
+.DS_Store
