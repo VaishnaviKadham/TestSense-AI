@@ -1,0 +1,46 @@
+name: Run Selenium TestNG Tests
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Set up Java
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Install Chrome
+      run: |
+        sudo apt update
+        sudo apt install -y google-chrome-stable
+
+    - name: Install ChromeDriver
+      run: |
+        wget https://storage.googleapis.com/chrome-for-testing-public/$(google-chrome --version | awk '{print $3}')/linux64/chromedriver-linux64.zip
+        unzip chromedriver-linux64.zip
+        sudo mv chromedriver-linux64/chromedriver /usr/local/bin/
+
+    - name: Run Tests
+      run: mvn clean test
+
+    - name: Upload TestNG Reports
+      uses: actions/upload-artifact@v4
+      with:
+        name: TestNG-Reports
+        path: test-output/
+
+    - name: Upload Screenshots
+      uses: actions/upload-artifact@v4
+      with:
+        name: Screenshots
+        path: screenshots/
