@@ -1,67 +1,99 @@
 name: Run Selenium TestNG Tests
 
 on:
-  push:
-    branches: ["main"]
+  workflow_dispatch:
 
 jobs:
   test:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-    - name: Checkout Code
-      uses: actions/checkout@v3
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
 
-    - name: Set up Java
-      uses: actions/setup-java@v3
-      with:
-        java-version: '17'
-        distribution: 'temurin'
+      - name: Set up Chrome and ChromeDriver (matched versions)
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
 
-    - name: Install Chrome
-      run: |
-        sudo apt update
-        sudo apt install -y google-chrome-stable
+      - name: Verify Chrome and ChromeDriver versions
+        run: |
+          echo "Chrome: $(google-chrome --version)"
+          echo "ChromeDriver: $(chromedriver --version)"
 
-    - name: Install ChromeDriver
-      run: |
-        CHROME_VERSION=$(google-chrome --version | awk '{print $3}')
-        wget https://storage.googleapis.com/chrome-for-testing-public/$CHROME_VERSION/linux64/chromedriver-linux64.zip
-        unzip chromedriver-linux64.zip
-        sudo mv chromedriver-linux64/chromedriver /usr/local/bin/
-        chmod +x /usr/local/bin/chromedriver
+      - name: Set up virtual display (Xvfb)
+        run: |
+          sudo apt-get install -y xvfb
+          Xvfb :99 -screen 0 1920x1080x24 &
+          echo "DISPLAY=:99" >> $GITHUB_ENV
 
-    - name: Create Required Folders
-      run: |
-        mkdir -p reports
-        mkdir -p screenshots
+      - name: Create Required Folders
+        run: |
+          mkdir -p reports
+          mkdir -p screenshots
 
-    - name: Run Tests in Headless Mode
-      run: |
-        mvn clean test \
-        -DsuiteXmlFile=testng.xml \
-        -DexecutionMode=headless \
-        -DreportPath=reports \
-        -DscreenshotPath=screenshots
+      - name: Run Tests in Headless Mode
+        id: run_tests
+        continue-on-error: true
+        run: |
+          mvn clean test \
+            -DsuiteXmlFile=testng.xml \
+            -DexecutionMode=headless \
+            -DreportPath=reports \
+            -DscreenshotPath=screenshots \
+            2>&1 | tee reports/console-output.log
+          echo "EXIT_CODE=${PIPESTATUS[0]}" >> $GITHUB_ENV
 
-    - name: Upload Extent Report
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: Extent-Report
-        path: reports/
+      - name: Write test summary to report
+        if: always()
+        run: |
+          echo "## Test Run Summary" >> reports/console-output.log
+          echo "Run at: $(date -u)" >> reports/console-output.log
+          echo "Exit code: $EXIT_CODE" >> reports/console-output.log
+          if [ "$EXIT_CODE" = "0" ]; then
+            echo "Status: PASSED" >> reports/console-output.log
+          else
+            echo "Status: FAILED" >> reports/console-output.log
+          fi
 
-    - name: Upload Screenshots
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: Screenshots
-        path: screenshots/
+      - name: Upload Extent Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Extent-Report
+          path: reports/
+          if-no-files-found: warn
 
-    - name: Upload TestNG Reports
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: TestNG-Reports
-        path: test-output/
+      - name: Upload Screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Screenshots
+          path: screenshots/
+          if-no-files-found: warn
+
+      - name: Upload TestNG Surefire Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: TestNG-Reports
+          path: target/surefire-reports/
+          if-no-files-found: warn
+
+      - name: Upload Console Log (for downstream workflows)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Console-Log
+          path: reports/console-output.log
+          if-no-files-found: warn
+
+      - name: Fail job if tests failed
+        if: env.EXIT_CODE != '0'
+        run: exit 1
