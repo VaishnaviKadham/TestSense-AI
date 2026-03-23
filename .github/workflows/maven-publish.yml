@@ -2,7 +2,7 @@ name: Run Selenium TestNG Tests
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   test:
@@ -26,21 +26,42 @@ jobs:
 
     - name: Install ChromeDriver
       run: |
-        wget https://storage.googleapis.com/chrome-for-testing-public/$(google-chrome --version | awk '{print $3}')/linux64/chromedriver-linux64.zip
+        CHROME_VERSION=$(google-chrome --version | awk '{print $3}')
+        wget https://storage.googleapis.com/chrome-for-testing-public/$CHROME_VERSION/linux64/chromedriver-linux64.zip
         unzip chromedriver-linux64.zip
         sudo mv chromedriver-linux64/chromedriver /usr/local/bin/
+        chmod +x /usr/local/bin/chromedriver
 
-    - name: Run Tests
-      run: mvn clean test
+    - name: Create Required Folders
+      run: |
+        mkdir -p reports
+        mkdir -p screenshots
 
-    - name: Upload TestNG Reports
+    - name: Run Tests in Headless Mode
+      run: |
+        mvn clean test \
+        -DsuiteXmlFile=testng.xml \
+        -DexecutionMode=headless \
+        -DreportPath=reports \
+        -DscreenshotPath=screenshots
+
+    - name: Upload Extent Report
+      if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: TestNG-Reports
-        path: test-output/
+        name: Extent-Report
+        path: reports/
 
     - name: Upload Screenshots
+      if: always()
       uses: actions/upload-artifact@v4
       with:
         name: Screenshots
         path: screenshots/
+
+    - name: Upload TestNG Reports
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: TestNG-Reports
+        path: test-output/
