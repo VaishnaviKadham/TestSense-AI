@@ -4,10 +4,9 @@ import base.BaseTest;
 import pages.HomePage;
 import pages.ProductPage;
 import pages.SearchResultsPage;
-import utils.ScreenshotUtil;
+import utils.ExtentTestManager;
 
 import org.testng.Assert;
-import org.testng.ITestResult;
 import org.testng.annotations.*;
 
 public class AmazonFunctionalTests extends BaseTest {
@@ -16,103 +15,75 @@ public class AmazonFunctionalTests extends BaseTest {
 	SearchResultsPage results;
 	ProductPage product;
 
-	@BeforeClass
+	// dependsOnMethods ensures BaseTest.setupClass() runs first and driver is ready
+	@BeforeClass(alwaysRun = true, dependsOnMethods = "setupClass")
 	public void init() {
-	    System.out.println("Initializing Page Objects for Functional Tests");
-	    home = new HomePage(driver);
-	    results = new SearchResultsPage(driver);
-	    product = new ProductPage(driver);
+		System.out.println("Initializing Page Objects for Functional Tests");
+		home = new HomePage(driver);
+		results = new SearchResultsPage(driver);
+		product = new ProductPage(driver);
 	}
 
-	// ✅ PASS TESTS
+	// ── PASSING TESTS ──────────────────────────────────────────────────
 
 	@Test(priority = 4)
 	public void verifySearchFunctionality() {
-		System.out.println("Testing search functionality...");
-
-		System.out.println(" Searching for iPhone...");
+		ExtentTestManager.logInfo("Testing search functionality");
+		ExtentTestManager.logInfo("Searching for 'iphone'");
 		home.submitSearch("iphone");
-
-		System.out.println(" Waiting for results...");
-		Assert.assertTrue(results.areResultsDisplayed(), " Search failed");
-
-		System.out.println(" Search working fine");
+		ExtentTestManager.logInfo("Waiting for search results");
+		Assert.assertTrue(results.areResultsDisplayed(), "Search failed — no results displayed");
+		ExtentTestManager.logPass("Search functionality working");
 	}
 
 	@Test(priority = 5)
 	public void verifyAddToCartFlow() {
-		System.out.println("Testing add to cart flow...");
-
-		System.out.println("Searching for pen...");
+		ExtentTestManager.logInfo("Testing add to cart flow");
+		ExtentTestManager.logInfo("Searching for 'pen'");
 		home.submitSearch("pen");
-
-		System.out.println("Clicking first product...");
+		ExtentTestManager.logInfo("Clicking first product");
 		product.clickFirstProduct();
-
-		System.out.println("Checking Add to Cart button...");
-		Assert.assertTrue(product.addToCart(), " Add to cart failed");
-
-		System.out.println("Add to cart validated");
+		ExtentTestManager.logInfo("Validating Add to Cart button is present");
+		Assert.assertTrue(product.addToCart(), "Add to Cart button not found");
+		ExtentTestManager.logPass("Add to cart validated successfully");
 	}
 
 	@Test(priority = 6)
 	public void verifyFilterSortFunctionality() {
-		System.out.println("Testing filter/sort functionality...");
-
-		System.out.println(" Searching for shoes...");
+		ExtentTestManager.logInfo("Testing filter/sort functionality");
+		ExtentTestManager.logInfo("Searching for 'shoes'");
 		home.submitSearch("shoes");
-
-		System.out.println("Checking prices...");
-		Assert.assertTrue(results.verifyPricesPresent(), " Prices missing");
-
-		System.out.println("Filter/sort working");
+		ExtentTestManager.logInfo("Validating prices are present in results");
+		Assert.assertTrue(results.verifyPricesPresent(), "Prices missing from results");
+		ExtentTestManager.logPass("Filter and sort working");
 	}
 
-	// ❌ FAILING TESTS
+	// ── INTENTIONAL FAILURE TESTS ──────────────────────────────────────
 
 	@Test(priority = 10)
 	public void fail_noResultsFunctional() {
-		System.out.println("Testing no results scenario...");
-
-		System.out.println("Searching random string...");
+		ExtentTestManager.logInfo("Testing no-results scenario (expected to fail)");
+		ExtentTestManager.logInfo("Searching for random string with no results");
 		home.submitSearch("asdkfjaskdfj123123");
-
-		System.out.println("Validating results...");
-		Assert.assertTrue(results.areResultsDisplayed(), "No results found (Expected failure)");
+		ExtentTestManager.logInfo("Validating results — should be empty");
+		Assert.assertTrue(results.areResultsDisplayed(), "Expected failure: No results found");
 	}
 
 	@Test(priority = 11)
 	public void fail_addToCartNotClickable() {
-		System.out.println("Testing add to cart click failure...");
-
-		System.out.println("Searching product...");
+		ExtentTestManager.logInfo("Testing invalid element click (expected to fail)");
+		ExtentTestManager.logInfo("Searching for 'pen'");
 		home.submitSearch("pen");
-
-		System.out.println("Trying to click invalid button...");
+		ExtentTestManager.logInfo("Attempting click on non-existent button ID");
 		driver.findElement(org.openqa.selenium.By.id("fake-add-to-cart")).click();
 	}
 
 	@Test(priority = 12)
 	public void fail_timeoutIssue() {
-		System.out.println(" Testing timeout/wait issue...");
-
-		System.out.println("Waiting for non-existing element...");
+		ExtentTestManager.logInfo("Testing timeout on non-existing element (expected to fail)");
+		ExtentTestManager.logInfo("Waiting for element that never appears");
 		new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(5))
 				.until(org.openqa.selenium.support.ui.ExpectedConditions
 						.visibilityOfElementLocated(org.openqa.selenium.By.id("never-exists")));
-
-		System.out.println("This line will never execute");
-	}
-
-	// 📸 HANDLER
-	@AfterMethod
-	public void handleResult(ITestResult result) {
-		if (result.getStatus() == ITestResult.FAILURE) {
-			System.out.println("FUNCTIONAL TEST FAILED: " + result.getName());
-			System.out.println("Reason: " + result.getThrowable());
-			ScreenshotUtil.capture(driver, result.getName());
-		} else {
-			System.out.println("FUNCTIONAL TEST PASSED: " + result.getName());
-		}
 	}
 }

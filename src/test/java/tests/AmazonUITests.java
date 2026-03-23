@@ -5,147 +5,105 @@ import pages.HomePage;
 import pages.SearchResultsPage;
 import utils.ConfigReader;
 import utils.ExcelUtil;
-import utils.ScreenshotUtil;
+import utils.ExtentTestManager;
 
 import org.testng.Assert;
-import org.testng.ITestResult;
 import org.testng.annotations.*;
 
 public class AmazonUITests extends BaseTest {
 
-    HomePage home;
-    SearchResultsPage results;
+	HomePage home;
+	SearchResultsPage results;
 
-    @BeforeClass
-    public void init() {
-        System.out.println("Initializing Page Objects for UI Tests");
-        home = new HomePage(driver);
-        results = new SearchResultsPage(driver);
-    }
+	// dependsOnMethods ensures BaseTest.setupClass() runs first and driver is ready
+	@BeforeClass(alwaysRun = true, dependsOnMethods = "setupClass")
+	public void init() {
+		System.out.println("Initializing Page Objects for UI Tests");
+		home = new HomePage(driver);
+		results = new SearchResultsPage(driver);
+	}
 
-    @Test(priority = 1)
-    public void verifyHomepageUI() {
+	@Test(priority = 1)
+	public void verifyHomepageUI() {
+		ExtentTestManager.logInfo("Executing verifyHomepageUI");
+		ExtentTestManager.logInfo("Checking Amazon logo visibility");
+		Assert.assertTrue(home.isLogoVisible(), "Logo not visible");
+		ExtentTestManager.logPass("Logo is visible");
 
-        System.out.println("Executing verifyHomepageUI");
+		ExtentTestManager.logInfo("Checking search box visibility");
+		Assert.assertTrue(home.isSearchBoxVisible(), "Search box not visible");
+		ExtentTestManager.logPass("Search box is visible");
 
-        System.out.println("Checking Amazon logo visibility");
-        Assert.assertTrue(home.isLogoVisible(), "Logo not visible");
+		ExtentTestManager.logInfo("Checking cart icon visibility");
+		Assert.assertTrue(home.isCartVisible(), "Cart not visible");
+		ExtentTestManager.logPass("Cart is visible");
 
-        System.out.println("Checking search box visibility");
-        Assert.assertTrue(home.isSearchBoxVisible(), "Search box not visible");
+		ExtentTestManager.logPass("Homepage UI verified successfully");
+	}
 
-        System.out.println("Checking cart visibility");
-        Assert.assertTrue(home.isCartVisible(), "Cart not visible");
+	@Test(priority = 2)
+	public void verifySearchSuggestionsUI() {
+		ExtentTestManager.logInfo("Executing verifySearchSuggestionsUI");
+		ExtentTestManager.logInfo("Typing 'laptop' in search box and waiting for suggestions");
+		int size = home.search("laptop").size();
+		ExtentTestManager.logInfo("Suggestions found: " + size);
+		Assert.assertTrue(size > 0, "No search suggestions displayed");
+		ExtentTestManager.logPass("Search suggestions verified — count: " + size);
+	}
 
-        System.out.println("Homepage UI verification completed");
-    }
+	@Test(priority = 3)
+	public void verifyProductListingUI() {
+		ExtentTestManager.logInfo("Executing verifyProductListingUI");
+		ExtentTestManager.logInfo("Searching for 'books'");
+		home.submitSearch("books");
+		ExtentTestManager.logInfo("Validating product results are displayed");
+		Assert.assertTrue(results.areResultsDisplayed(), "Results not displayed");
+		ExtentTestManager.logPass("Product listing verified");
+	}
 
-    @Test(priority = 2)
-    public void verifySearchSuggestionsUI() {
+	@Test(priority = 4)
+	public void writeDataToExcel() {
+		ExtentTestManager.logInfo("Executing writeDataToExcel");
+		String searchText = "laptop";
+		ExtentTestManager.logInfo("Writing value '" + searchText + "' to Excel");
+		ExcelUtil.writeData("AmazonData", 0, 0, searchText);
+		ExtentTestManager.logPass("Excel write completed");
+	}
 
-        System.out.println("Executing verifySearchSuggestionsUI");
+	@Test(priority = 5)
+	public void verifyDataFromExcel() {
+		ExtentTestManager.logInfo("Executing verifyDataFromExcel");
+		ExtentTestManager.logInfo("Reading data from Excel row 0, col 0");
+		String value = ExcelUtil.readData("AmazonData", 0, 0);
+		ExtentTestManager.logInfo("Value read from Excel: " + value);
+		Assert.assertEquals(value, "laptop", "Excel data mismatch");
+		ExtentTestManager.logPass("Excel data verified successfully");
+	}
 
-        System.out.println("Typing 'laptop' in search box");
-        int size = home.search("laptop").size();
+	@Test(priority = 6)
+	public void verifySearchUsingExcelMatrix() {
+		ExtentTestManager.logInfo("Executing verifySearchUsingExcelMatrix");
+		String path = ConfigReader.get("excelPath");
+		ExtentTestManager.logInfo("Reading test data from Excel: " + path);
+		String[][] data = ExcelUtil.getSheetData(path, "Sheet1");
+		ExtentTestManager.logInfo("Total rows found: " + (data.length - 1));
 
-        System.out.println("Validating suggestions count");
-        Assert.assertTrue(size > 0, "Suggestions not displayed");
+		for (int i = 1; i < data.length; i++) {
+			String searchText = data[i][0];
+			ExtentTestManager.logInfo("[Row " + i + "] Searching: " + searchText);
+			home.submitSearch(searchText);
+			ExtentTestManager.logInfo("[Row " + i + "] Validating results");
+			Assert.assertTrue(results.areResultsDisplayed(), "Search failed for: " + searchText);
+			ExtentTestManager.logPass("[Row " + i + "] Search successful for: " + searchText);
+		}
+	}
 
-        System.out.println("Search suggestions verified");
-    }
-
-    @Test(priority = 3)
-    public void verifyProductListingUI() {
-
-        System.out.println("Executing verifyProductListingUI");
-
-        System.out.println("Searching for 'books'");
-        home.submitSearch("books");
-
-        System.out.println("Waiting for product results");
-        Assert.assertTrue(results.areResultsDisplayed(), "Results not displayed");
-
-        System.out.println("Product listing verified");
-    }
-
-    @Test(priority = 4)
-    public void writeDataToExcel() {
-
-        System.out.println("Executing writeDataToExcel");
-
-        String searchText = "laptop";
-
-        System.out.println("Writing data to Excel sheet AmazonData");
-        ExcelUtil.writeData("AmazonData", 0, 0, searchText);
-
-        System.out.println("Excel write completed");
-    }
-
-    @Test(priority = 5)
-    public void verifyDataFromExcel() {
-
-        System.out.println("Executing verifyDataFromExcel");
-
-        System.out.println("Reading data from Excel sheet AmazonData");
-        String value = ExcelUtil.readData("AmazonData", 0, 0);
-
-        System.out.println("Validating Excel data");
-        Assert.assertEquals(value, "laptop", "Excel data mismatch");
-
-        System.out.println("Excel data verified successfully");
-    }
-
-    @Test(priority = 6)
-    public void verifySearchUsingExcelMatrix() {
-
-        System.out.println("Executing verifySearchUsingExcelMatrix");
-
-        String path = ConfigReader.get("excelPath");
-
-        System.out.println("Reading Excel data from: " + path);
-        String[][] data = ExcelUtil.getSheetData(path, "Sheet1");
-
-        for (int i = 1; i < data.length; i++) {
-
-            System.out.println("----------------------------------");
-
-            String searchText = data[i][0];
-
-            System.out.println("Using search value: " + searchText);
-
-            System.out.println("Entering search text");
-            home.submitSearch(searchText);
-
-            System.out.println("Waiting for results");
-            Assert.assertTrue(results.areResultsDisplayed(),
-                    "Search failed for: " + searchText);
-
-            System.out.println("Search validated for: " + searchText);
-        }
-    }
-
-    @Test(priority = 7)
-    public void fail_wrongLocatorUI() {
-
-        System.out.println("Executing fail_wrongLocatorUI");
-
-        System.out.println("Trying to locate invalid element");
-        boolean flag = driver.findElements(
-                org.openqa.selenium.By.id("invalid-id-123")).size() > 0;
-
-        System.out.println("Validating element presence");
-        Assert.assertTrue(flag, "Element not found");
-    }
-
-    @AfterMethod
-    public void handleResult(ITestResult result) {
-
-        if (result.getStatus() == ITestResult.FAILURE) {
-            System.out.println("TEST FAILED: " + result.getName());
-            System.out.println("Reason: " + result.getThrowable());
-            ScreenshotUtil.capture(driver, result.getName());
-        } else {
-            System.out.println("TEST PASSED: " + result.getName());
-        }
-    }
+	@Test(priority = 7)
+	public void fail_wrongLocatorUI() {
+		ExtentTestManager.logInfo("Executing wrong locator test (expected to fail)");
+		ExtentTestManager.logInfo("Looking for element with invalid ID");
+		boolean flag = driver.findElements(org.openqa.selenium.By.id("invalid-id-123")).size() > 0;
+		ExtentTestManager.logInfo("Element found: " + flag);
+		Assert.assertTrue(flag, "Element not found — as expected this test fails");
+	}
 }
