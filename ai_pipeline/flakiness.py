@@ -19,8 +19,14 @@ def update_flakiness(test_name, failed):
     if failed:
         data[test_name]["failures"] += 1
 
+    runs = data[test_name]["runs"]
+
     with open(HISTORY_FILE, "w") as f:
         json.dump(data, f, indent=2)
 
-    failure_rate = data[test_name]["failures"] / data[test_name]["runs"]
+    # 🚨 CONDITION YOU ASKED
+    if runs <= 2:
+        return "Insufficient Data"
+
+    failure_rate = data[test_name]["failures"] / runs
     return round(failure_rate * 100, 2)
