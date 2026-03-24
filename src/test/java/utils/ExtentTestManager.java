@@ -1,6 +1,7 @@
 package utils;
 
 import com.aventstack.extentreports.*;
+import com.aventstack.extentreports.markuputils.*;
 
 public class ExtentTestManager {
 
@@ -14,25 +15,30 @@ public class ExtentTestManager {
         return test.get();
     }
 
-    // ✅ STEP LOGGING METHODS
+    // ✅ INFO (Blue)
     public static void logInfo(String message) {
         if (getTest() != null)
-            getTest().log(Status.INFO, message);
-        else
-            System.out.println(message);
+            getTest().info(
+                MarkupHelper.createLabel(message, ExtentColor.BLUE)
+            );
+        System.out.println(message);
     }
 
+    // ✅ PASS (Green)
     public static void logPass(String message) {
         if (getTest() != null)
-            getTest().log(Status.PASS, message);
-        else
-            System.out.println(message);
+            getTest().pass(
+                MarkupHelper.createLabel(message, ExtentColor.GREEN)
+            );
+        System.out.println(message);
     }
 
+    // ✅ FAIL (Red)
     public static void logFail(String message) {
         if (getTest() != null)
-            getTest().log(Status.FAIL, message);
-        else
-            System.out.println(message);
+            getTest().fail(
+                MarkupHelper.createLabel(message, ExtentColor.RED)
+            );
+        System.out.println(message);
     }
 }

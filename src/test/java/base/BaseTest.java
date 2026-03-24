@@ -24,6 +24,24 @@ public class BaseTest {
     protected ByteArrayOutputStream logStream;
     protected PrintStream originalOut;
 
+    // ✅ Custom Tee PrintStream (console + memory)
+    class TeePrintStream extends PrintStream {
+        private final PrintStream second;
+
+        public TeePrintStream(PrintStream main, PrintStream second) {
+            super(main);
+            this.second = second;
+        }
+
+        @Override
+        public void write(byte[] buf, int off, int len) {
+            try {
+                second.write(buf, off, len);
+            } catch (Exception ignored) {}
+            super.write(buf, off, len);
+        }
+    }
+
     @BeforeSuite
     public void setupReport() {
         extent = ExtentManager.getInstance();
@@ -32,8 +50,6 @@ public class BaseTest {
     @BeforeClass
     @Parameters("executionMode")
     public void setupClass(@Optional("UI") String executionMode) {
-
-        System.out.println("Launching browser...");
 
         ChromeOptions options = new ChromeOptions();
 
@@ -50,25 +66,30 @@ public class BaseTest {
 
         String url = ConfigReader.get("url");
 
-        System.out.println("Opening URL: " + url);
+        ExtentTestManager.logInfo("Launching Browser");
+        ExtentTestManager.logInfo("Opening URL: " + url);
+
         driver.get(url);
+
+        // ✅ Add Browser + Mode info to report
+        extent.setSystemInfo("Browser", "Chrome");
+        extent.setSystemInfo("Execution Mode", executionMode);
     }
 
     @BeforeMethod
     public void beforeTest(Method method) {
-
-        System.out.println("\n************** STARTING TEST **************");
-        System.out.println("Executing Test Case: " + method.getName());
 
         startTime = System.currentTimeMillis();
 
         ExtentTest test = extent.createTest(method.getName());
         ExtentTestManager.setTest(test);
 
-        // Capture console logs
+        // Capture logs
         logStream = new ByteArrayOutputStream();
         originalOut = System.out;
-        System.setOut(new PrintStream(logStream));
+
+        PrintStream teeStream = new TeePrintStream(new PrintStream(logStream), originalOut);
+        System.setOut(teeStream);
 
         ExtentTestManager.logInfo("Test Started: " + method.getName());
     }
@@ -79,13 +100,12 @@ public class BaseTest {
         long endTime = System.currentTimeMillis();
         long totalTime = (endTime - startTime) / 1000;
 
-        // Restore console
         System.setOut(originalOut);
         String logs = logStream.toString();
 
         ExtentTest test = ExtentTestManager.getTest();
 
-        // Attach console logs
+        // ✅ Attach full console logs
         test.info("<pre>" + logs + "</pre>");
 
         if (result.getStatus() == ITestResult.SUCCESS) {
@@ -96,13 +116,14 @@ public class BaseTest {
 
             ExtentTestManager.logFail("Test Failed: " + result.getThrowable());
 
-            // ✅ TAKE SCREENSHOT
             String path = ScreenshotUtil.capture(driver, method.getName());
 
-            try {
-                test.addScreenCaptureFromPath(path);
-            } catch (Exception e) {
-                System.out.println("Failed to attach screenshot");
+            if (path != null) {
+                try {
+                    test.addScreenCaptureFromPath(path);
+                } catch (Exception e) {
+                    System.out.println("Failed to attach screenshot");
+                }
             }
 
         } else {
@@ -110,9 +131,6 @@ public class BaseTest {
         }
 
         ExtentTestManager.logInfo("Execution Time: " + totalTime + " seconds");
-
-        System.out.println("Execution Time: " + totalTime + " seconds");
-        System.out.println("************** END TEST **************\n");
     }
 
     @AfterSuite
