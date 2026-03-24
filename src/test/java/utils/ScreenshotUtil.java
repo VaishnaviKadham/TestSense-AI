@@ -8,23 +8,13 @@ public class ScreenshotUtil {
 
 	public static String capture(WebDriver driver, String testName) {
 		try {
-			// Resolve screenshot directory from system property (set by GitHub Actions
-			// workflow)
-			String screenshotDir = System.getProperty("screenshotPath", "screenshots");
-			new File(screenshotDir).mkdirs();
-
-			// Sanitise test name so it's safe as a filename
-			String safeName = testName.replaceAll("[^a-zA-Z0-9_\\-]", "_");
-			String path = screenshotDir + "/" + safeName + ".png";
-
 			File src = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
+			String path = "screenshots/" + testName + ".png";
 			FileUtils.copyFile(src, new File(path));
-
-			System.out.println("[Screenshot] Saved: " + path);
 			return path;
 
 		} catch (Exception e) {
-			System.out.println("[Screenshot] Capture failed: " + e.getMessage());
+			System.out.println("Screenshot capture failed: " + e.getMessage());
 			return null;
 		}
 	}

@@ -5,7 +5,7 @@
 
 <suite name="Amazon Automation Suite">
 
-    <parameter name="executionMode" value="headless"/>
+    <parameter name="executionMode" value="ui"/>
 
     <test name="UI Tests">
         <classes>

@@ -36,45 +36,18 @@
 			<version>5.1.1</version>
 		</dependency>
 
-		<dependency>
-			<groupId>commons-io</groupId>
-			<artifactId>commons-io</artifactId>
-			<version>2.15.1</version>
-		</dependency>
-
 	</dependencies>
 
 	<build>
 		<plugins>
-			<!--  Compiler: enforce Java 17  -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.11.0</version>
-				<configuration>
-					<source>17</source>
-					<target>17</target>
-				</configuration>
-			</plugin>
-			<!--  Surefire: pass CI system properties into the JVM  -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>3.1.2</version>
 				<configuration>
 					<suiteXmlFiles>
-						<suiteXmlFile>${suiteXmlFile}</suiteXmlFile>
+						<suiteXmlFile>testng.xml</suiteXmlFile>
 					</suiteXmlFiles>
-					<!--  Forward -D properties from Maven CLI into test JVM  -->
-					<systemPropertyVariables>
-						<executionMode>${executionMode}</executionMode>
-						<reportPath>${reportPath}</reportPath>
-						<screenshotPath>${screenshotPath}</screenshotPath>
-						<env>${env}</env>
-					</systemPropertyVariables>
-					<!--  Show full test output in CI logs  -->
-					<useFile>false</useFile>
-					<trimStackTrace>false</trimStackTrace>
 				</configuration>
 			</plugin>
 		</plugins>
