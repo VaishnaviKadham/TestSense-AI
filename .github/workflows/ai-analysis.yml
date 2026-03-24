@@ -42,3 +42,13 @@ jobs:
           TEAMS_WEBHOOK: ${{ secrets.TEAMS_WEBHOOK }}
         run: |
           python ai_pipeline/main.py
+          
+      - name: Upload Test Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-artifacts
+          path: |
+            target/surefire-reports
+            screenshots
+            logs
