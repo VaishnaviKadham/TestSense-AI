@@ -9,136 +9,64 @@ jobs:
 
     steps:
 
-      # ── 1. Checkout ────────────────────────────────────────────────────
-      - name: Checkout Code
-        uses: actions/checkout@v4
+    - name: Checkout Code
+      uses: actions/checkout@v3
 
-      # ── 2. Java ────────────────────────────────────────────────────────
-      - name: Set up Java 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: maven
+    - name: Set up Java
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: maven
 
-      # ── 3. Chrome + matching ChromeDriver (version-locked together) ───
-      - name: Set up Chrome and ChromeDriver
-        uses: browser-actions/setup-chrome@v1
-        with:
-          chrome-version: stable
+    - name: Install Chrome
+      run: |
+        sudo apt update
+        sudo apt install -y google-chrome-stable
 
-      - name: Verify Chrome and ChromeDriver versions match
-        run: |
-          echo "Chrome:      $(google-chrome --version)"
-          echo "ChromeDriver: $(chromedriver --version)"
+    - name: Install ChromeDriver
+      run: |
+        CHROME_VERSION=$(google-chrome --version | awk '{print $3}')
+        wget https://storage.googleapis.com/chrome-for-testing-public/$CHROME_VERSION/linux64/chromedriver-linux64.zip
+        unzip chromedriver-linux64.zip
+        sudo mv chromedriver-linux64/chromedriver /usr/local/bin/
+        chmod +x /usr/local/bin/chromedriver
 
-      # ── 4. Virtual display (needed even in headless on GitHub runners) ─
-      - name: Start Xvfb virtual display
-        run: |
-          sudo apt-get install -y xvfb
-          Xvfb :99 -screen 0 1920x1080x24 &
-          echo "DISPLAY=:99" >> $GITHUB_ENV
+    - name: Ensure Required Folders Exist
+      run: |
+        mkdir -p reports screenshots logs
 
-      # ── 5. Expand /dev/shm to prevent Chrome OOM crashes ──────────────
-      - name: Increase /dev/shm size
-        run: sudo mount -o remount,size=2g /dev/shm
+    - name: Run TestNG Suite in Headless Mode
+      run: |
+        mvn clean test \
+        -Dsurefire.suiteXmlFiles=testng.xml \
+        -DexecutionMode=headless
+      continue-on-error: true
 
-      # ── 6. Create output folders ───────────────────────────────────────
-      - name: Create output directories
-        run: |
-          mkdir -p reports
-          mkdir -p screenshots
+    - name: Upload Extent Report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: Extent-Report
+        path: reports/
 
-      # ── 7. Run tests ───────────────────────────────────────────────────
-      - name: Run Tests in Headless Mode
-        id: run_tests
-        continue-on-error: true
-        run: |
-          mvn clean test \
-            -DsuiteXmlFile=testng.xml \
-            -DexecutionMode=headless \
-            -DreportPath=reports \
-            -DscreenshotPath=screenshots \
-            -Denv="GitHub Actions" \
-            2>&1 | tee reports/console-output.log
-          echo "MVN_EXIT=${PIPESTATUS[0]}" >> $GITHUB_ENV
+    - name: Upload Screenshots
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: Screenshots
+        path: screenshots/
 
-      # ── 8. Append run summary to console log ──────────────────────────
-      - name: Write run summary
-        if: always()
-        run: |
-          {
-            echo ""
-            echo "================================================"
-            echo "  WORKFLOW SUMMARY"
-            echo "  Run at : $(date -u)"
-            echo "  Runner : ${{ runner.os }}"
-            echo "  Status : $([ '${{ env.MVN_EXIT }}' = '0' ] && echo PASSED || echo FAILED)"
-            echo "================================================"
-          } >> reports/console-output.log
+    - name: Upload TestNG Reports
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: TestNG-Reports
+        path: target/surefire-reports/
 
-      # ── 9. Upload artifacts (always, even on test failure) ─────────────
-      - name: Upload Extent Report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: Extent-Report
-          path: reports/
-          if-no-files-found: warn
-
-      - name: Upload Screenshots
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: Screenshots
-          path: screenshots/
-          if-no-files-found: warn
-
-      - name: Upload TestNG Surefire Reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: TestNG-Surefire-Reports
-          path: target/surefire-reports/
-          if-no-files-found: warn
-
-      - name: Upload Console Log (for downstream workflows)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: Console-Log
-          path: reports/console-output.log
-          if-no-files-found: warn
-
-      # ── 10. GitHub Job Summary ─────────────────────────────────────────
-      - name: Write GitHub Job Summary
-        if: always()
-        run: |
-          echo "## 🧪 Selenium TestNG Results" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          if [ "$MVN_EXIT" = "0" ]; then
-            echo "### ✅ All tests passed" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "### ❌ Some tests failed — check Extent Report artifact" >> $GITHUB_STEP_SUMMARY
-          fi
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Artifact | Contents |" >> $GITHUB_STEP_SUMMARY
-          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
-          echo "| \`Extent-Report\` | Full HTML report with logs + screenshots |" >> $GITHUB_STEP_SUMMARY
-          echo "| \`Screenshots\` | PNG screenshots for failed tests |" >> $GITHUB_STEP_SUMMARY
-          echo "| \`Console-Log\` | Raw Maven console output for downstream workflows |" >> $GITHUB_STEP_SUMMARY
-          echo "| \`TestNG-Surefire-Reports\` | XML reports for test parsers |" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "<details><summary>Last 60 lines of console output</summary>" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          tail -60 reports/console-output.log >> $GITHUB_STEP_SUMMARY || true
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          echo "</details>" >> $GITHUB_STEP_SUMMARY
-
-      # ── 11. Fail the job if Maven reported failures ────────────────────
-      - name: Fail job if tests failed
-        if: env.MVN_EXIT != '0'
-        run: |
-          echo "Tests failed with Maven exit code $MVN_EXIT"
-          exit 1
+    - name: Upload Logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: Logs
+        path: logs/
