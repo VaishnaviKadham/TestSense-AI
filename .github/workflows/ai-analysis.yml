@@ -1,10 +1,10 @@
 name: AI Failure Analysis Pipeline
 
 on:
-  workflow_run:
-    workflows: ["Run Selenium TestNG Tests"]
-    types:
-      - completed
+  push:
+    paths:
+      - 'test-results/**'
+  workflow_dispatch:
 
 jobs:
   ai-analysis:
@@ -12,39 +12,26 @@ jobs:
 
     steps:
 
-      - uses: actions/checkout@v4
+      - name: Checkout Repo
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
       - name: Install Dependencies
         run: pip install -r ai_pipeline/requirements.txt
 
-      - name: Install jq
-        run: sudo apt-get install -y jq
-
-      - name: Download Artifacts from Previous Workflow
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RUN_ID: ${{ github.event.workflow_run.id }}
+      # FIND LATEST RUN FOLDER
+      - name: Get Latest Test Results Folder
+        id: latest
         run: |
-          curl -s -H "Authorization: Bearer $GH_TOKEN" \
-          https://api.github.com/repos/${{ github.repository }}/actions/runs/$RUN_ID/artifacts \
-          > artifacts.json
+          LATEST=$(ls -td test-results/run-* | head -1)
+          echo "LATEST_FOLDER=$LATEST" >> $GITHUB_ENV
+          echo "Using folder: $LATEST"
 
-          DOWNLOAD_URL=$(cat artifacts.json | jq -r '.artifacts[] | select(.name=="test-artifacts") | .archive_download_url')
-
-          if [ "$DOWNLOAD_URL" == "null" ]; then
-            echo "Artifact not found!"
-            exit 1
-          fi
-
-          curl -L -H "Authorization: Bearer $GH_TOKEN" \
-          -o artifacts.zip "$DOWNLOAD_URL"
-
-          unzip artifacts.zip
-
+      # RUN AI PIPELINE
       - name: Run AI Analysis
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -55,4 +42,6 @@ jobs:
           EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
           TEAMS_WEBHOOK: ${{ secrets.TEAMS_WEBHOOK }}
-        run: python ai_pipeline/main.py
+          RESULTS_PATH: ${{ env.LATEST_FOLDER }}
+        run: |
+          python ai_pipeline/main.py
