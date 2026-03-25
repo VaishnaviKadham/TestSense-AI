@@ -1,7 +1,11 @@
 name: AI Failure Analysis Pipeline
 
 on:
-  workflow_dispatch: 
+  workflow_run:
+    workflows: ["Run Selenium TestNG Tests"]
+    types:
+      - completed
+
    
 
 jobs:
