@@ -3,7 +3,7 @@ from classifier import classify_failure
 from jira_integration import create_jira_bug
 from flakiness import update_flakiness
 from report_generator import generate_report
-from notifier import send_email    
+from notifier import send_email
 
 def run():
 
@@ -12,6 +12,7 @@ def run():
 
     for t in tests:
 
+        # PASS handling (for flakiness tracking)
         if t["status"] == "PASS":
             update_flakiness(t["test_name"], False)
             continue
@@ -23,7 +24,7 @@ def run():
         classification = classification_output.lower()
 
         jira = None
-        if "code bug" in classification:
+        if "code_bug" in classification:
             jira = create_jira_bug(
                 t["test_name"], t["error"], classification_output
             )
@@ -40,6 +41,10 @@ def run():
             "flakiness": flakiness,
             "screenshot": t["screenshot"]
         })
+
+    if not results:
+        print("No failed/skipped tests to analyze")
+        return
 
     report = generate_report(results)
 
