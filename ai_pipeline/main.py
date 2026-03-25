@@ -3,7 +3,7 @@ from classifier import classify_failure
 from jira_integration import create_jira_bug
 from flakiness import update_flakiness
 from report_generator import generate_report
-from notifier import send_email      #, send_teams
+from notifier import send_email    
 
 def run():
 
@@ -44,7 +44,6 @@ def run():
     report = generate_report(results)
 
     send_email(report)
-    # send_teams()
 
 
 if __name__ == "__main__":
