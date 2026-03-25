@@ -28,6 +28,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: test-artifacts
+          run-id: ${{ github.event.workflow_run.id }}
           path: .
 
       - name: Run AI Analysis
