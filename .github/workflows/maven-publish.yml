@@ -43,41 +43,38 @@ jobs:
         -DexecutionMode=headless
       continue-on-error: true
 
-    # EXISTING (optional, keep if you want separate downloads)
-    - name: Upload Extent Report
+    # CREATE UNIQUE FOLDER PER RUN
+    - name: Prepare Unique Test Results Folder
       if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: Extent-Report
-        path: reports/
+      run: |
+        RUN_ID=${{ github.run_id }}
+        FOLDER="test-results/run-$RUN_ID"
 
-    - name: Upload Screenshots
+        mkdir -p $FOLDER
+
+        cp -r target/surefire-reports $FOLDER/ || true
+        cp -r screenshots $FOLDER/ || true
+        cp -r logs $FOLDER/ || true
+
+        echo "RESULT_FOLDER=$FOLDER" >> $GITHUB_ENV
+
+    #  COMMIT TO REPO
+    - name: Commit Test Results
       if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: Screenshots
-        path: screenshots/
+      run: |
+        git config --global user.name "github-actions"
+        git config --global user.email "actions@github.com"
 
-    - name: Upload TestNG Reports
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: TestNG-Reports
-        path: target/surefire-reports/
+        git add test-results/
+        git commit -m "Add test results for run ${{ github.run_id }} [skip ci]" || echo "No changes"
+        git push
 
-    - name: Upload Logs
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: Logs
-        path: logs/
-
-    #IMPORTANT: ADD THIS (for AI pipeline)
+    # OPTIONAL (keep if needed)
     - name: Upload Combined Test Artifacts
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: test-artifacts   # MUST MATCH AI WORKFLOW
+        name: test-artifacts
         path: |
           target/surefire-reports/
           screenshots/
