@@ -1,11 +1,14 @@
-import openai
+
+from openai import OpenAI
 import os
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# NEW CLIENT (v1+ API)
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def classify_failure(error, logs):
 
-    prompt = """You are an expert SDET (Senior Software Development Engineer in Test) 
+    prompt = f"""
+    You are an expert SDET (Senior Software Development Engineer in Test) 
 and SRE with 15+ years of experience analyzing test failures across large-scale 
 distributed systems at companies like Google, Amazon, and Microsoft.
 
@@ -42,12 +45,20 @@ Logs:
 Return in format:
 Classification: <type>
 Reason: <reason>
-Fix: <fix>"""
+Fix: <fix>
+"""
 
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.2
+        )
 
-    response = openai.ChatCompletion.create(
-        model="gpt-4o-mini",
-        messages=[{"role": "user", "content": prompt}]
-    )
+        return response.choices[0].message.content.strip()
 
-    return response["choices"][0]["message"]["content"]
+    except Exception as e:
+        print(f"LLM Error: {e}")
+        return "Classification: UNKNOWN\nReason: LLM failed\nFix: Retry"
