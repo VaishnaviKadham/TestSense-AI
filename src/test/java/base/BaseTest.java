@@ -102,6 +102,19 @@ public class BaseTest {
 
         System.setOut(originalOut);
         String logs = logStream.toString();
+        
+        try {
+            java.io.File logDir = new java.io.File("logs");
+            if (!logDir.exists()) {
+                logDir.mkdirs();
+            }
+
+            java.io.FileWriter fw = new java.io.FileWriter("logs/" + method.getName() + ".log");
+            fw.write(logs);
+            fw.close();
+        } catch (Exception e) {
+            System.out.println("Failed to write logs file");
+        }
 
         ExtentTest test = ExtentTestManager.getTest();
 
