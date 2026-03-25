@@ -44,7 +44,7 @@ def run():
     report = generate_report(results)
 
     send_email(report)
-    send_teams()
+    # send_teams()
 
 
 if __name__ == "__main__":
