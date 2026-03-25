@@ -12,24 +12,38 @@ jobs:
 
     steps:
 
-      - name: Checkout Repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
       - name: Install Dependencies
-        run: |
-          pip install -r ai_pipeline/requirements.txt
+        run: pip install -r ai_pipeline/requirements.txt
 
-      - name: Download Test Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: test-artifacts
-          run-id: ${{ github.event.workflow_run.id }}
-          path: .
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
+      - name: Download Artifacts from Previous Workflow
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+        run: |
+          curl -s -H "Authorization: Bearer $GH_TOKEN" \
+          https://api.github.com/repos/${{ github.repository }}/actions/runs/$RUN_ID/artifacts \
+          > artifacts.json
+
+          DOWNLOAD_URL=$(cat artifacts.json | jq -r '.artifacts[] | select(.name=="test-artifacts") | .archive_download_url')
+
+          if [ "$DOWNLOAD_URL" == "null" ]; then
+            echo "Artifact not found!"
+            exit 1
+          fi
+
+          curl -L -H "Authorization: Bearer $GH_TOKEN" \
+          -o artifacts.zip "$DOWNLOAD_URL"
+
+          unzip artifacts.zip
 
       - name: Run AI Analysis
         env:
@@ -41,5 +55,4 @@ jobs:
           EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
           TEAMS_WEBHOOK: ${{ secrets.TEAMS_WEBHOOK }}
-        run: |
-          python ai_pipeline/main.py
+        run: python ai_pipeline/main.py
