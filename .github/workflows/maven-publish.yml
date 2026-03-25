@@ -43,6 +43,7 @@ jobs:
         -DexecutionMode=headless
       continue-on-error: true
 
+    # EXISTING (optional, keep if you want separate downloads)
     - name: Upload Extent Report
       if: always()
       uses: actions/upload-artifact@v4
@@ -70,3 +71,14 @@ jobs:
       with:
         name: Logs
         path: logs/
+
+    #IMPORTANT: ADD THIS (for AI pipeline)
+    - name: Upload Combined Test Artifacts
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-artifacts   # MUST MATCH AI WORKFLOW
+        path: |
+          target/surefire-reports/
+          screenshots/
+          logs/
