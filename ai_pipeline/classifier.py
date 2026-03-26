@@ -135,41 +135,18 @@ import os
 import time
 import json
 import re
-# import anthropic  
 import logging
 from typing import List, Dict
 
-from openai import OpenAI   # Added
+from openai import OpenAI
 
 logger = logging.getLogger(__name__)
-
-# client = anthropic.Anthropic(
-#     api_key=os.getenv("ANTHROPIC_API_KEY")
-# )
 
 # OpenAI client
 client = OpenAI(
     api_key=os.getenv("OPENAI_API_KEY")
 )
 
-# OLD SYSTEM PROMPT (commented)
-"""
-SYSTEM_PROMPT = """You are an expert SDET and SRE.
-
-Classify failures into:
-- CODE_BUG
-- FLAKY_TEST
-- ENV_ISSUE
-- DATA_ISSUE
-- INFRA_FAILURE
-
-Rules:
-- Use strong evidence
-- No guessing
-"""
-"""
-
-# ✅ NEW LIGHTWEIGHT SYSTEM PROMPT
 SYSTEM_PROMPT = """You are an expert test failure analyzer.
 
 Give only the failure reason in one short line.
@@ -187,10 +164,6 @@ Name: {f['test_name']}
 
 Error:
 {f['error'][:200]}
-
-# OLD (commented to reduce payload)
-# Logs:
-# {f.get('logs','')[:500]}
 """
 
     prompt += """
@@ -204,22 +177,6 @@ Return JSON:
 ]
 """
 
-    # OLD RESPONSE FORMAT (commented)
-    """
-    Return JSON inside <json> tags:
-
-    <json>
-    [
-      {
-        "test_name": "...",
-        "classification": "...",
-        "reason": "...",
-        "fix": "..."
-      }
-    ]
-    </json>
-    """
-
     return prompt
 
 
@@ -228,17 +185,18 @@ def classify_failures_batch(failures: List[Dict], retries=3):
     if not failures:
         return []
 
-    # Optional: limit batch size (can uncomment if needed)
-    # failures = failures[:5]
+    # Optional safety (recommended for CI stability)
+    failures = failures[:5]
 
     prompt = build_prompt(failures)
 
     for attempt in range(retries):
         try:
             logger.info(f"OpenAI call attempt {attempt+1}")
+            logger.info(f"Prompt size: {len(prompt)} chars")
 
             response = client.chat.completions.create(
-                model="gpt-4.1-mini",   # fast + stable
+                model="gpt-4.1-mini",
                 temperature=0.2,
                 messages=[
                     {"role": "system", "content": SYSTEM_PROMPT},
@@ -259,21 +217,12 @@ def classify_failures_batch(failures: List[Dict], retries=3):
 
 def extract_json(text: str):
 
-    # OLD JSON TAG PARSER (still kept for safety)
-    match = re.search(r"<json>(.*?)</json>", text, re.DOTALL)
-    if match:
-        try:
-            return json.loads(match.group(1).strip())
-        except:
-            pass
-
-    # NEW DIRECT JSON PARSER
     match = re.search(r"\[[\s\S]+\]", text)
     if match:
         try:
             return json.loads(match.group(0))
-        except:
-            pass
+        except Exception as e:
+            logger.error(f"JSON parsing failed: {e}")
 
     raise ValueError("Invalid JSON from model")
 
@@ -283,10 +232,7 @@ def fallback(failures: List[Dict]):
     return [
         {
             "test_name": f["test_name"],
-            # OLD fields (kept but simplified)
-            # "classification": "UNKNOWN",
-            "reason": "AI failed",
-            # "fix": "Manual analysis required"
+            "reason": "AI failed"
         }
         for f in failures
     ]
