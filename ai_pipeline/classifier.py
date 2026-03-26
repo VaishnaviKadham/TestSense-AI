@@ -2,14 +2,21 @@ import os
 import time
 import json
 import re
-import anthropic
+# import anthropic   # ⛔ Commented out
 import logging
 from typing import List, Dict
 
+from openai import OpenAI   # Added
+
 logger = logging.getLogger(__name__)
 
-client = anthropic.Anthropic(
-    api_key=os.getenv("ANTHROPIC_API_KEY")
+# client = anthropic.Anthropic(
+#     api_key=os.getenv("ANTHROPIC_API_KEY")
+# )
+
+# penAI client
+client = OpenAI(
+    api_key=os.getenv("OPENAI_API_KEY")
 )
 
 SYSTEM_PROMPT = """You are an expert SDET and SRE.
@@ -68,17 +75,19 @@ def classify_failures_batch(failures: List[Dict], retries=3):
 
     for attempt in range(retries):
         try:
-            logger.info(f"Claude call attempt {attempt+1}")
+            logger.info(f"OpenAI call attempt {attempt+1}")
 
-            response = client.messages.create(
-                model="claude-3-haiku-20240307",  # more stable in CI
-                max_tokens=1000,
+            # Replaced Anthropic with OpenAI
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",   # fast + cheap + stable
                 temperature=0.2,
-                system=SYSTEM_PROMPT,
-                messages=[{"role": "user", "content": prompt}]
+                messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": prompt}
+                ]
             )
 
-            raw = response.content[0].text
+            raw = response.choices[0].message.content
 
             return extract_json(raw)
 
@@ -105,7 +114,7 @@ def extract_json(text: str):
         except:
             pass
 
-    raise ValueError("Invalid JSON from Claude")
+    raise ValueError("Invalid JSON from model")
 
 
 def fallback(failures: List[Dict]):
