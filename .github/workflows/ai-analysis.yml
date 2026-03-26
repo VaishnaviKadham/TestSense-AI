@@ -22,8 +22,16 @@ jobs:
 
       - name: Install Dependencies
         run: |
-             pip install --upgrade pip
-             pip install -r ai_pipeline/requirements.txt
+          pip install --upgrade pip
+          pip install -r ai_pipeline/requirements.txt
+
+      # Restore history BEFORE running pipeline
+      - name: Restore history
+        uses: actions/download-artifact@v4
+        with:
+          name: flakiness-history
+          path: ai_pipeline/
+        continue-on-error: true
 
       # FIND LATEST RUN FOLDER
       - name: Get Latest Test Results Folder
@@ -37,7 +45,7 @@ jobs:
       - name: Run AI Analysis
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          GEMINI_API_KEY: ${{secrets.GEMINI_API_KEY}}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           JIRA_URL: ${{ secrets.JIRA_URL }}
           JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
@@ -49,3 +57,10 @@ jobs:
           RESULTS_PATH: ${{ env.LATEST_FOLDER }}
         run: |
           python ai_pipeline/main.py
+
+      #  Save history AFTER pipeline
+      - name: Save history
+        uses: actions/upload-artifact@v4
+        with:
+          name: flakiness-history
+          path: ai_pipeline/history.json
