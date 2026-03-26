@@ -8,7 +8,8 @@ def generate_report(results):
         <p>Status: {r['status']}</p>
         <p>Error: {r['error']}</p>
         <p>Classification: {r['classification']}</p>
-        <p>Flakiness: {r['flakiness']}%</p>
+        <p>Flakiness Score: {r['flakiness_score']}</p>
+        <p>Flakiness Level: {r['flakiness_label']}</p>
         <p>Suggestion: {r['suggestion']}</p>
         <p>Jira: {r['jira']}</p>
         """
