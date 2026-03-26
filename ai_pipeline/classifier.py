@@ -79,7 +79,7 @@ def classify_failures_batch(failures: List[Dict], retries=3):
 
             # Replaced Anthropic with OpenAI
             response = client.chat.completions.create(
-                model="gpt-4.1-mini"",   # fast + cheap + stable
+                model="gpt-4.1-mini",   # fast + cheap + stable
                 temperature=0.2,
                 messages=[
                     {"role": "system", "content": SYSTEM_PROMPT},
