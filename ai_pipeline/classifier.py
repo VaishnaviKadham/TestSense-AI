@@ -2,7 +2,7 @@ import os
 import time
 import json
 import re
-# import anthropic   # ⛔ Commented out
+# import anthropic  
 import logging
 from typing import List, Dict
 
@@ -46,7 +46,7 @@ Error:
 {f['error'][:500]}
 
 Logs:
-{f.get('logs','')[:1500]}
+{f.get('logs','')[:500]}
 """
 
     prompt += """
@@ -79,7 +79,7 @@ def classify_failures_batch(failures: List[Dict], retries=3):
 
             # Replaced Anthropic with OpenAI
             response = client.chat.completions.create(
-                model="gpt-4o-mini",   # fast + cheap + stable
+                model="gpt-4.1-mini"",   # fast + cheap + stable
                 temperature=0.2,
                 messages=[
                     {"role": "system", "content": SYSTEM_PROMPT},
