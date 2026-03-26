@@ -32,6 +32,13 @@ jobs:
           name: flakiness-history
           path: ai_pipeline/
         continue-on-error: true
+      - name: Check history exists
+        run: |
+         if [ -f ai_pipeline/history.json ]; then
+          echo "History restored"
+         else
+          echo "No previous history found, starting fresh"
+          fi
 
       # FIND LATEST RUN FOLDER
       - name: Get Latest Test Results Folder
