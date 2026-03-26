@@ -51,7 +51,7 @@ Fix: {fix}
                 t["test_name"], t["error"], full_output
             )
 
-        flakiness = update_flakiness(t["test_name"], True)
+        flaky = update_flakiness(t["test_name"], True)
 
         results.append({
             "test_name": t["test_name"],
@@ -60,7 +60,8 @@ Fix: {fix}
             "classification": classification.lower(),
             "suggestion": full_output,
             "jira": jira,
-            "flakiness": flakiness,
+            "flakiness_score": flaky["score"],
+            "flakiness_label": flaky["label"],
             "screenshot": t["screenshot"]
         })
 
