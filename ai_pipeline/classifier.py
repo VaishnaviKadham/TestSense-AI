@@ -3,8 +3,6 @@ from openai import OpenAI
 import os
 
 # NEW CLIENT (v1+ API)
-
-echo "Key length: ${#OPENAI_API_KEY}"
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def classify_failure(error, logs):
