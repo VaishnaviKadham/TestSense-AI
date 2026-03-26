@@ -239,7 +239,7 @@
 
 
 
-// google gemini
+# google gemini
 import os
 import time
 import json
