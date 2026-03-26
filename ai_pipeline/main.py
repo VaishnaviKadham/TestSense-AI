@@ -1,32 +1,54 @@
 from parser import parse_test_results
-from classifier import classify_failure
+from classifier import classify_failures_batch
 from jira_integration import create_jira_bug
 from flakiness import update_flakiness
 from report_generator import generate_report
 from notifier import send_email
 
+
 def run():
 
     tests = parse_test_results()
+
+    failures = []
     results = []
 
+    # STEP 1: Separate failures
     for t in tests:
-
-        # PASS handling (for flakiness tracking)
         if t["status"] == "PASS":
             update_flakiness(t["test_name"], False)
-            continue
+        else:
+            failures.append(t)
 
-        classification_output = classify_failure(
-            t["error"], t.get("logs", "")
-        )
+    if not failures:
+        print("No failed/skipped tests")
+        return
 
-        classification = classification_output.lower()
+    # STEP 2: Single LLM call
+    ai_results = classify_failures_batch(failures)
+
+    # Convert to map for easy lookup
+    ai_map = {r["test_name"]: r for r in ai_results}
+
+    # STEP 3: Merge results
+    for t in failures:
+
+        ai = ai_map.get(t["test_name"], {})
+
+        classification = ai.get("classification", "UNKNOWN")
+        reason = ai.get("reason", "")
+        fix = ai.get("fix", "")
+
+        full_output = f"""
+Classification: {classification}
+Reason: {reason}
+Fix: {fix}
+"""
 
         jira = None
-        if "code_bug" in classification:
+        if classification == "CODE_BUG":
             jira = create_jira_bug(
-                t["test_name"], t["error"], classification_output
+                t["test_name"], t["error"], full_output
             )
 
         flakiness = update_flakiness(t["test_name"], True)
@@ -35,19 +57,14 @@ def run():
             "test_name": t["test_name"],
             "status": t["status"],
             "error": t["error"],
-            "classification": classification,
-            "suggestion": classification_output,
+            "classification": classification.lower(),
+            "suggestion": full_output,
             "jira": jira,
             "flakiness": flakiness,
             "screenshot": t["screenshot"]
         })
 
-    if not results:
-        print("No failed/skipped tests to analyze")
-        return
-
     report = generate_report(results)
-
     send_email(report)
 
 
