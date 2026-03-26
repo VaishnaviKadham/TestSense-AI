@@ -256,7 +256,7 @@ client = genai.Client(
     api_key=os.getenv("GEMINI_API_KEY")
 )
 
-MODEL = "gemini-2.0-flash-exp"  # ✅ free + working
+MODEL = "gemini-1.5-flash"  # ✅ free + working
 
 SYSTEM_PROMPT = """You are an expert test failure analyzer.
 
