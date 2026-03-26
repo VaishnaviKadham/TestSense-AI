@@ -9,8 +9,7 @@ from typing import List, Dict
 logger = logging.getLogger(__name__)
 
 client = anthropic.Anthropic(
-    api_key=os.getenv("ANTHROPIC_API_KEY"),
-    timeout=30
+    api_key=os.getenv("ANTHROPIC_API_KEY")
 )
 
 SYSTEM_PROMPT = """You are an expert SDET and SRE.
@@ -24,19 +23,16 @@ Classify failures into:
 
 Rules:
 - Use strong evidence
-- Be precise
 - No guessing
 """
 
-# -----------------------------
-# BUILD PROMPT (BATCH)
-# -----------------------------
+
 def build_prompt(failures: List[Dict]) -> str:
     prompt = "Analyze the following test failures:\n\n"
 
     for i, f in enumerate(failures):
         prompt += f"""
-Test {i+1}:
+Test {i+1}
 Name: {f['test_name']}
 
 Error:
@@ -47,13 +43,13 @@ Logs:
 """
 
     prompt += """
-Return JSON list inside <json> tags:
+Return JSON inside <json> tags:
 
 <json>
 [
   {
     "test_name": "...",
-    "classification": "CODE_BUG|FLAKY_TEST|ENV_ISSUE|DATA_ISSUE|INFRA_FAILURE",
+    "classification": "...",
     "reason": "...",
     "fix": "..."
   }
@@ -63,10 +59,7 @@ Return JSON list inside <json> tags:
     return prompt
 
 
-# -----------------------------
-# MAIN FUNCTION
-# -----------------------------
-def classify_failures_batch(failures: List[Dict], retries=3) -> List[Dict]:
+def classify_failures_batch(failures: List[Dict], retries=3):
 
     if not failures:
         return []
@@ -75,11 +68,11 @@ def classify_failures_batch(failures: List[Dict], retries=3) -> List[Dict]:
 
     for attempt in range(retries):
         try:
-            logger.info(f"Calling Claude (attempt {attempt+1})")
+            logger.info(f"Claude call attempt {attempt+1}")
 
             response = client.messages.create(
-                model="claude-3-5-sonnet-20241022",
-                max_tokens=1200,
+                model="claude-3-haiku-20240307",  # more stable in CI
+                max_tokens=1000,
                 temperature=0.2,
                 system=SYSTEM_PROMPT,
                 messages=[{"role": "user", "content": prompt}]
@@ -96,10 +89,7 @@ def classify_failures_batch(failures: List[Dict], retries=3) -> List[Dict]:
     return fallback(failures)
 
 
-# -----------------------------
-# JSON PARSER
-# -----------------------------
-def extract_json(text: str) -> List[Dict]:
+def extract_json(text: str):
 
     match = re.search(r"<json>(.*?)</json>", text, re.DOTALL)
     if match:
@@ -115,22 +105,17 @@ def extract_json(text: str) -> List[Dict]:
         except:
             pass
 
-    raise ValueError("Invalid JSON from LLM")
+    raise ValueError("Invalid JSON from Claude")
 
 
-# -----------------------------
-# FALLBACK
-# -----------------------------
-def fallback(failures: List[Dict]) -> List[Dict]:
+def fallback(failures: List[Dict]):
 
-    results = []
-
-    for f in failures:
-        results.append({
+    return [
+        {
             "test_name": f["test_name"],
             "classification": "UNKNOWN",
             "reason": "AI failed",
-            "fix": "Check logs manually"
-        })
-
-    return results
+            "fix": "Manual analysis required"
+        }
+        for f in failures
+    ]
