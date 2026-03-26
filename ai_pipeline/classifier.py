@@ -247,20 +247,22 @@ import re
 import logging
 from typing import List, Dict
 
-import google.generativeai as genai
+from google import genai
 
 logger = logging.getLogger(__name__)
 
-# Configure Gemini
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+# Gemini client (new SDK)
+client = genai.Client(
+    api_key=os.getenv("GEMINI_API_KEY")
+)
 
-# Use free model
-model = genai.GenerativeModel("gemini-1.5-flash")
+MODEL = "gemini-2.0-flash-exp"  # ✅ free + working
 
 SYSTEM_PROMPT = """You are an expert test failure analyzer.
 
 Give only the failure reason in one short line.
 Be precise. No long explanations.
+Return ONLY valid JSON.
 """
 
 
@@ -305,7 +307,10 @@ def classify_failures_batch(failures: List[Dict], retries=3):
             logger.info(f"Gemini call attempt {attempt+1}")
             logger.info(f"Prompt size: {len(prompt)} chars")
 
-            response = model.generate_content(prompt)
+            response = client.models.generate_content(
+                model=MODEL,
+                contents=prompt
+            )
 
             raw = response.text
 
