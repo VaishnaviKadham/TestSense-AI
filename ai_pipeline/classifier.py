@@ -130,7 +130,7 @@
 #     ]
 
 
-shorter prompt
+# shorter prompt
 import os
 import time
 import json
