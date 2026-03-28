@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Failed suite [Amazon Automation Suite]" guice-stage="DEVELOPMENT" verbose="0">
+  <parameter name="executionMode" value="ui"/>
+  <test thread-count="5" name="UI Tests(failed)" verbose="0">
+    <classes>
+      <class name="tests.AmazonUITests">
+        <methods>
+          <include name="beforeTest"/>
+          <include name="verifySearchUsingExcelMatrix"/>
+          <include name="setupClass"/>
+          <include name="verifyProductListingUI"/>
+          <include name="setupReport"/>
+          <include name="tearDownClass"/>
+          <include name="afterTest"/>
+          <include name="fail_wrongLocatorUI"/>
+          <include name="verifyHomepageUI"/>
+          <include name="verifySearchSuggestionsUI"/>
+          <include name="init"/>
+          <include name="tearDownReport"/>
+        </methods>
+      </class> <!-- tests.AmazonUITests -->
+    </classes>
+  </test> <!-- UI Tests(failed) -->
+  <test thread-count="5" name="Functional Tests(failed)" verbose="0">
+    <classes>
+      <class name="tests.AmazonFunctionalTests">
+        <methods>
+          <include name="beforeTest"/>
+          <include name="setupClass"/>
+          <include name="init"/>
+          <include name="setupReport"/>
+          <include name="tearDownClass"/>
+          <include name="afterTest"/>
+          <include name="fail_timeoutIssue"/>
+          <include name="verifyFilterSortFunctionality"/>
+          <include name="fail_noResultsFunctional"/>
+          <include name="verifySearchFunctionality"/>
+          <include name="verifyAddToCartFlow"/>
+          <include name="fail_addToCartNotClickable"/>
+          <include name="tearDownReport"/>
+        </methods>
+      </class> <!-- tests.AmazonFunctionalTests -->
+    </classes>
+  </test> <!-- Functional Tests(failed) -->
+</suite> <!-- Failed suite [Amazon Automation Suite] -->
