@@ -1,144 +1,157 @@
 {
   "writeDataToExcel": {
     "history": [
+      "PASS",
       "PASS"
     ],
-    "total_runs": 1,
+    "total_runs": 2,
     "total_failures": 0,
     "logs": [],
-    "last_updated": "2026-03-30T09:54:20.689601",
+    "last_updated": "2026-03-30T09:56:39.333115",
     "flakiness_score": 0.0,
     "flakiness_label": "STABLE"
   },
   "verifyDataFromExcel": {
     "history": [
+      "PASS",
       "PASS"
     ],
-    "total_runs": 1,
+    "total_runs": 2,
     "total_failures": 0,
     "logs": [],
-    "last_updated": "2026-03-30T09:54:20.689797",
+    "last_updated": "2026-03-30T09:56:39.333463",
     "flakiness_score": 0.0,
     "flakiness_label": "STABLE"
   },
   "verifyHomepageUI": {
     "history": [
+      "FAIL",
       "FAIL"
     ],
-    "total_runs": 1,
-    "total_failures": 1,
+    "total_runs": 2,
+    "total_failures": 2,
     "logs": [],
-    "last_updated": "2026-03-30T09:54:21.769261",
+    "last_updated": "2026-03-30T09:56:40.967841",
     "flakiness_score": 1.0,
     "flakiness_label": "HIGH"
   },
   "verifySearchSuggestionsUI": {
     "history": [
+      "FAIL",
       "FAIL"
     ],
-    "total_runs": 1,
-    "total_failures": 1,
+    "total_runs": 2,
+    "total_failures": 2,
     "logs": [],
-    "last_updated": "2026-03-30T09:54:21.769522",
+    "last_updated": "2026-03-30T09:56:40.968246",
     "flakiness_score": 1.0,
     "flakiness_label": "HIGH"
   },
   "verifyProductListingUI": {
     "history": [
+      "FAIL",
       "FAIL"
     ],
-    "total_runs": 1,
-    "total_failures": 1,
+    "total_runs": 2,
+    "total_failures": 2,
     "logs": [],
-    "last_updated": "2026-03-30T09:54:21.769951",
+    "last_updated": "2026-03-30T09:56:40.968784",
     "flakiness_score": 1.0,
     "flakiness_label": "HIGH"
   },
   "verifySearchUsingExcelMatrix": {
     "history": [
+      "FAIL",
       "FAIL"
     ],
-    "total_runs": 1,
-    "total_failures": 1,
+    "total_runs": 2,
+    "total_failures": 2,
     "logs": [],
-    "last_updated": "2026-03-30T09:54:21.770248",
+    "last_updated": "2026-03-30T09:56:40.969167",
     "flakiness_score": 1.0,
     "flakiness_label": "HIGH"
   },
   "fail_wrongLocatorUI": {
     "history": [
+      "FAIL",
       "FAIL"
     ],
-    "total_runs": 1,
-    "total_failures": 1,
+    "total_runs": 2,
+    "total_failures": 2,
     "logs": [],
-    "last_updated": "2026-03-30T09:54:22.200082",
+    "last_updated": "2026-03-30T09:56:41.435749",
     "flakiness_score": 1.0,
     "flakiness_label": "HIGH"
   },
   "verifySearchFunctionality": {
     "history": [
+      "FAIL",
       "FAIL"
     ],
-    "total_runs": 1,
-    "total_failures": 1,
+    "total_runs": 2,
+    "total_failures": 2,
     "logs": [],
-    "last_updated": "2026-03-30T09:54:22.200385",
+    "last_updated": "2026-03-30T09:56:41.436155",
     "flakiness_score": 1.0,
     "flakiness_label": "HIGH"
   },
   "verifyAddToCartFlow": {
     "history": [
+      "FAIL",
       "FAIL"
     ],
-    "total_runs": 1,
-    "total_failures": 1,
+    "total_runs": 2,
+    "total_failures": 2,
     "logs": [],
-    "last_updated": "2026-03-30T09:54:22.201009",
+    "last_updated": "2026-03-30T09:56:41.436575",
     "flakiness_score": 1.0,
     "flakiness_label": "HIGH"
   },
   "verifyFilterSortFunctionality": {
     "history": [
+      "FAIL",
       "FAIL"
     ],
-    "total_runs": 1,
-    "total_failures": 1,
+    "total_runs": 2,
+    "total_failures": 2,
     "logs": [],
-    "last_updated": "2026-03-30T09:54:22.201415",
+    "last_updated": "2026-03-30T09:56:41.436989",
     "flakiness_score": 1.0,
     "flakiness_label": "HIGH"
   },
   "fail_noResultsFunctional": {
     "history": [
+      "FAIL",
       "FAIL"
     ],
-    "total_runs": 1,
-    "total_failures": 1,
+    "total_runs": 2,
+    "total_failures": 2,
     "logs": [],
-    "last_updated": "2026-03-30T09:54:22.201809",
+    "last_updated": "2026-03-30T09:56:41.437434",
     "flakiness_score": 1.0,
     "flakiness_label": "HIGH"
   },
   "fail_addToCartNotClickable": {
     "history": [
+      "FAIL",
       "FAIL"
     ],
-    "total_runs": 1,
-    "total_failures": 1,
+    "total_runs": 2,
+    "total_failures": 2,
     "logs": [],
-    "last_updated": "2026-03-30T09:54:22.202156",
+    "last_updated": "2026-03-30T09:56:41.437815",
     "flakiness_score": 1.0,
     "flakiness_label": "HIGH"
   },
   "fail_timeoutIssue": {
     "history": [
+      "FAIL",
       "FAIL"
     ],
-    "total_runs": 1,
-    "total_failures": 1,
+    "total_runs": 2,
+    "total_failures": 2,
     "logs": [],
-    "last_updated": "2026-03-30T09:54:22.202640",
+    "last_updated": "2026-03-30T09:56:41.438199",
     "flakiness_score": 1.0,
     "flakiness_label": "HIGH"
   }
