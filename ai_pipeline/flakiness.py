@@ -245,7 +245,8 @@ def update_flakiness(test_name, status, error="", logs="", classification="", re
             "classification": classification
         })
 
-        record["logs"] = record["logs"][-5]  # keep last 5 logs
+       if not isinstance(record.get("logs"), list):
+           record["logs"] = []
 
     stats = compute_flakiness(record["history"])
 
