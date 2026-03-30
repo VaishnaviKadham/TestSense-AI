@@ -155,6 +155,7 @@ def generate_report(results, passed, failed, skipped, history):
     testng_link = str(
     max(Path("test-results").glob("run-*"), key=lambda p: int(p.name.split("-")[-1]))
     / "surefire-reports" / "index.html"
+    )
 
     html = f"""
     <html>
