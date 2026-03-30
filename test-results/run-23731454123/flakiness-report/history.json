@@ -1,0 +1,145 @@
+{
+  "writeDataToExcel": {
+    "history": [
+      "PASS"
+    ],
+    "total_runs": 1,
+    "total_failures": 0,
+    "logs": [],
+    "last_updated": "2026-03-30T09:54:20.689601",
+    "flakiness_score": 0.0,
+    "flakiness_label": "STABLE"
+  },
+  "verifyDataFromExcel": {
+    "history": [
+      "PASS"
+    ],
+    "total_runs": 1,
+    "total_failures": 0,
+    "logs": [],
+    "last_updated": "2026-03-30T09:54:20.689797",
+    "flakiness_score": 0.0,
+    "flakiness_label": "STABLE"
+  },
+  "verifyHomepageUI": {
+    "history": [
+      "FAIL"
+    ],
+    "total_runs": 1,
+    "total_failures": 1,
+    "logs": [],
+    "last_updated": "2026-03-30T09:54:21.769261",
+    "flakiness_score": 1.0,
+    "flakiness_label": "HIGH"
+  },
+  "verifySearchSuggestionsUI": {
+    "history": [
+      "FAIL"
+    ],
+    "total_runs": 1,
+    "total_failures": 1,
+    "logs": [],
+    "last_updated": "2026-03-30T09:54:21.769522",
+    "flakiness_score": 1.0,
+    "flakiness_label": "HIGH"
+  },
+  "verifyProductListingUI": {
+    "history": [
+      "FAIL"
+    ],
+    "total_runs": 1,
+    "total_failures": 1,
+    "logs": [],
+    "last_updated": "2026-03-30T09:54:21.769951",
+    "flakiness_score": 1.0,
+    "flakiness_label": "HIGH"
+  },
+  "verifySearchUsingExcelMatrix": {
+    "history": [
+      "FAIL"
+    ],
+    "total_runs": 1,
+    "total_failures": 1,
+    "logs": [],
+    "last_updated": "2026-03-30T09:54:21.770248",
+    "flakiness_score": 1.0,
+    "flakiness_label": "HIGH"
+  },
+  "fail_wrongLocatorUI": {
+    "history": [
+      "FAIL"
+    ],
+    "total_runs": 1,
+    "total_failures": 1,
+    "logs": [],
+    "last_updated": "2026-03-30T09:54:22.200082",
+    "flakiness_score": 1.0,
+    "flakiness_label": "HIGH"
+  },
+  "verifySearchFunctionality": {
+    "history": [
+      "FAIL"
+    ],
+    "total_runs": 1,
+    "total_failures": 1,
+    "logs": [],
+    "last_updated": "2026-03-30T09:54:22.200385",
+    "flakiness_score": 1.0,
+    "flakiness_label": "HIGH"
+  },
+  "verifyAddToCartFlow": {
+    "history": [
+      "FAIL"
+    ],
+    "total_runs": 1,
+    "total_failures": 1,
+    "logs": [],
+    "last_updated": "2026-03-30T09:54:22.201009",
+    "flakiness_score": 1.0,
+    "flakiness_label": "HIGH"
+  },
+  "verifyFilterSortFunctionality": {
+    "history": [
+      "FAIL"
+    ],
+    "total_runs": 1,
+    "total_failures": 1,
+    "logs": [],
+    "last_updated": "2026-03-30T09:54:22.201415",
+    "flakiness_score": 1.0,
+    "flakiness_label": "HIGH"
+  },
+  "fail_noResultsFunctional": {
+    "history": [
+      "FAIL"
+    ],
+    "total_runs": 1,
+    "total_failures": 1,
+    "logs": [],
+    "last_updated": "2026-03-30T09:54:22.201809",
+    "flakiness_score": 1.0,
+    "flakiness_label": "HIGH"
+  },
+  "fail_addToCartNotClickable": {
+    "history": [
+      "FAIL"
+    ],
+    "total_runs": 1,
+    "total_failures": 1,
+    "logs": [],
+    "last_updated": "2026-03-30T09:54:22.202156",
+    "flakiness_score": 1.0,
+    "flakiness_label": "HIGH"
+  },
+  "fail_timeoutIssue": {
+    "history": [
+      "FAIL"
+    ],
+    "total_runs": 1,
+    "total_failures": 1,
+    "logs": [],
+    "last_updated": "2026-03-30T09:54:22.202640",
+    "flakiness_score": 1.0,
+    "flakiness_label": "HIGH"
+  }
+}
