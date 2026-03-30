@@ -72,7 +72,6 @@
 #           name: flakiness-history
 #           path: ai_pipeline/history.json
 
-
 name: AI Failure Analysis Pipeline
 
 on:
@@ -87,20 +86,31 @@ jobs:
 
     steps:
 
+      # ─────────────────────────────
+      # Checkout
+      # ─────────────────────────────
       - name: Checkout Repo
         uses: actions/checkout@v4
 
+      # ─────────────────────────────
+      # Python Setup
+      # ─────────────────────────────
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
+      # ─────────────────────────────
+      # Install Dependencies
+      # ─────────────────────────────
       - name: Install Dependencies
         run: |
           pip install --upgrade pip
           pip install -r ai_pipeline/requirements.txt
 
-      # Restore (ignore first run error)
+      # ─────────────────────────────
+      # Restore history (safe for first run)
+      # ─────────────────────────────
       - name: Restore history
         uses: actions/download-artifact@v4
         with:
@@ -108,7 +118,35 @@ jobs:
           path: ai_pipeline/
         continue-on-error: true
 
-      # Run pipeline (THIS creates history.json)
+      # ─────────────────────────────
+      # Ensure history.json exists (FIRST RUN FIX)
+      # ─────────────────────────────
+      - name: Ensure history file exists
+        run: |
+          mkdir -p ai_pipeline
+          if [ ! -f ai_pipeline/history.json ]; then
+            echo "{}" > ai_pipeline/history.json
+            echo "Created new history.json"
+          else
+            echo "history.json already exists"
+          fi
+
+      # ─────────────────────────────
+      # Get latest test-results folder
+      # ─────────────────────────────
+      - name: Get Latest Test Results Folder
+        run: |
+          if ls test-results/run-* 1> /dev/null 2>&1; then
+            LATEST=$(ls -td test-results/run-* | head -1)
+          else
+            LATEST="test-results"
+          fi
+          echo "LATEST_FOLDER=$LATEST" >> $GITHUB_ENV
+          echo "Using folder: $LATEST"
+
+      # ─────────────────────────────
+      # Run AI Pipeline
+      # ─────────────────────────────
       - name: Run AI Analysis
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -123,7 +161,9 @@ jobs:
         run: |
           python ai_pipeline/main.py
 
-      # Always upload (even first run)
+      # ─────────────────────────────
+      # Upload history (ALWAYS)
+      # ─────────────────────────────
       - name: Save history
         if: always()
         uses: actions/upload-artifact@v4
