@@ -364,7 +364,7 @@ client = genai.Client(
 )
 
 # Use stable free model
-MODEL = "gemini-2.5-flash"
+MODEL = "gemini-2.5-flash-lite"
 
 # Full system prompt (restored)
 SYSTEM_PROMPT = """You are an expert SDET and SRE.
@@ -478,4 +478,3 @@ def fallback(failures: List[Dict]):
         for f in failures
     ]
 
-#
