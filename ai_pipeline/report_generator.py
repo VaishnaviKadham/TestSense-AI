@@ -1,127 +1,198 @@
-# def generate_report(results):
+# # def generate_report(results):
 
-#     html = "<html><body><h1>AI Failure Analysis Report</h1>"
+# #     html = "<html><body><h1>AI Failure Analysis Report</h1>"
+
+# #     for r in results:
+# #         html += f"""
+# #         <h3>{r['test_name']}</h3>
+# #         <p>Status: {r['status']}</p>
+# #         <p>Error: {r['error']}</p>
+# #         <p>Classification: {r['classification']}</p>
+# #         <p>Flakiness Score: {r['flakiness_score']}</p>
+# #         <p>Flakiness Level: {r['flakiness_label']}</p>
+# #         <p>Suggestion: {r['suggestion']}</p>
+# #         <p>Jira: {r['jira']}</p>
+# #         """
+
+# #         if r["screenshot"]:
+# #             html += f'<img src="{r["screenshot"]}" width="400"/>'
+
+# #         html += "<hr>"
+
+# #     html += "</body></html>"
+
+# #     with open("ai_report.html", "w") as f:
+# #         f.write(html)
+
+# #     return "ai_report.html"
+
+
+# from datetime import datetime
+# import os
+# import json
+
+
+# def generate_report(results, passed, failed, skipped, history):
+
+#     timestamp = datetime.utcnow().strftime("%Y-%m-%d_%H-%M-%S")
+
+#     os.makedirs("flakiness-reports", exist_ok=True)
+
+#     main_file = f"flakiness-reports/flakiness_{timestamp}.html"
+
+#     testng_link = "../test-report/index.html"
+
+#     html = f"""
+#     <html>
+#     <head>
+#     <style>
+#         body {{ font-family: Arial; background:#f4f6f8; }}
+#         h1 {{ color:#2c3e50; }}
+#         table {{
+#             border-collapse: collapse;
+#             width: 100%;
+#             background: white;
+#         }}
+#         th {{
+#             background:#34495e;
+#             color:white;
+#             padding:10px;
+#         }}
+#         td {{
+#             padding:10px;
+#             border-bottom:1px solid #ddd;
+#         }}
+#         tr:hover {{ background:#f1f1f1; }}
+#         .high {{ color:red; font-weight:bold; }}
+#         .medium {{ color:orange; }}
+#         .low {{ color:green; }}
+#         .btn {{
+#             background:#3498db;
+#             color:white;
+#             padding:8px 12px;
+#             text-decoration:none;
+#             border-radius:5px;
+#         }}
+#     </style>
+#     </head>
+
+#     <body>
+
+#     <h1>🚀 AI Flakiness Dashboard</h1>
+
+#     <h2>Execution Summary</h2>
+#     <table>
+#         <tr><th>Passed</th><th>Failed</th><th>Skipped</th></tr>
+#         <tr><td>{passed}</td><td>{failed}</td><td>{skipped}</td></tr>
+#     </table>
+
+#     <br>
+
+#     <a class="btn" href="{testng_link}">🔗 Open TestNG Report</a>
+
+#     <h2>Flakiness Overview</h2>
+#     <table>
+#     <tr>
+#         <th>Test</th>
+#         <th>Score</th>
+#         <th>Level</th>
+#         <th>Total Runs</th>
+#         <th>Failures</th>
+#     </tr>
+#     """
+
+#     for test, data in history.items():
+
+#         label_class = data.get("flakiness_label", "").lower()
+
+#         html += f"""
+#         <tr>
+#             <td>{test}</td>
+#             <td>{data.get('flakiness_score')}</td>
+#             <td class="{label_class}">{data.get('flakiness_label')}</td>
+#             <td>{data.get('total_runs')}</td>
+#             <td>{data.get('total_failures')}</td>
+#         </tr>
+#         """
+
+#     html += "</table><br><h2>Failure Details</h2><table><tr><th>Test</th><th>Error</th><th>AI Reason</th><th>Fix</th></tr>"
 
 #     for r in results:
 #         html += f"""
-#         <h3>{r['test_name']}</h3>
-#         <p>Status: {r['status']}</p>
-#         <p>Error: {r['error']}</p>
-#         <p>Classification: {r['classification']}</p>
-#         <p>Flakiness Score: {r['flakiness_score']}</p>
-#         <p>Flakiness Level: {r['flakiness_label']}</p>
-#         <p>Suggestion: {r['suggestion']}</p>
-#         <p>Jira: {r['jira']}</p>
+#         <tr>
+#             <td>{r['test_name']}</td>
+#             <td>{r['error']}</td>
+#             <td>{r['reason']}</td>
+#             <td>{r['fix']}</td>
+#         </tr>
 #         """
 
-#         if r["screenshot"]:
-#             html += f'<img src="{r["screenshot"]}" width="400"/>'
+#     html += "</table></body></html>"
 
-#         html += "<hr>"
-
-#     html += "</body></html>"
-
-#     with open("ai_report.html", "w") as f:
+#     with open(main_file, "w") as f:
 #         f.write(html)
 
-#     return "ai_report.html"
+#     # Save snapshot
+#     with open(f"flakiness-reports/history_{timestamp}.json", "w") as f:
+#         json.dump(history, f, indent=2)
+
+#     return main_file
 
 
 from datetime import datetime
 import os
-import json
 
 
-def generate_report(results, passed, failed, skipped, history):
+def generate_ai_report(results, passed, failed, skipped):
 
     timestamp = datetime.utcnow().strftime("%Y-%m-%d_%H-%M-%S")
-
     os.makedirs("flakiness-reports", exist_ok=True)
 
-    main_file = f"flakiness-reports/flakiness_{timestamp}.html"
+    file_path = f"flakiness-reports/ai_report_{timestamp}.html"
 
-    testng_link = "../test-report/index.html"
+    testng_link = "../test-output/index.html"
 
     html = f"""
     <html>
     <head>
     <style>
         body {{ font-family: Arial; background:#f4f6f8; }}
-        h1 {{ color:#2c3e50; }}
-        table {{
-            border-collapse: collapse;
-            width: 100%;
-            background: white;
-        }}
-        th {{
-            background:#34495e;
-            color:white;
-            padding:10px;
-        }}
-        td {{
-            padding:10px;
-            border-bottom:1px solid #ddd;
-        }}
-        tr:hover {{ background:#f1f1f1; }}
-        .high {{ color:red; font-weight:bold; }}
-        .medium {{ color:orange; }}
-        .low {{ color:green; }}
-        .btn {{
-            background:#3498db;
-            color:white;
-            padding:8px 12px;
-            text-decoration:none;
-            border-radius:5px;
-        }}
+        table {{ width:100%; border-collapse: collapse; background:white; }}
+        th {{ background:#2c3e50; color:white; padding:10px; }}
+        td {{ padding:10px; border-bottom:1px solid #ddd; }}
     </style>
     </head>
 
     <body>
 
-    <h1>🚀 AI Flakiness Dashboard</h1>
+    <h1>🤖 AI Failure Analysis</h1>
 
-    <h2>Execution Summary</h2>
+    <h2>Summary</h2>
     <table>
         <tr><th>Passed</th><th>Failed</th><th>Skipped</th></tr>
         <tr><td>{passed}</td><td>{failed}</td><td>{skipped}</td></tr>
     </table>
 
     <br>
+    <a href="{testng_link}">🔗 Open TestNG Report</a>
 
-    <a class="btn" href="{testng_link}">🔗 Open TestNG Report</a>
-
-    <h2>Flakiness Overview</h2>
+    <h2>Failures</h2>
     <table>
-    <tr>
-        <th>Test</th>
-        <th>Score</th>
-        <th>Level</th>
-        <th>Total Runs</th>
-        <th>Failures</th>
-    </tr>
-    """
-
-    for test, data in history.items():
-
-        label_class = data.get("flakiness_label", "").lower()
-
-        html += f"""
         <tr>
-            <td>{test}</td>
-            <td>{data.get('flakiness_score')}</td>
-            <td class="{label_class}">{data.get('flakiness_label')}</td>
-            <td>{data.get('total_runs')}</td>
-            <td>{data.get('total_failures')}</td>
+            <th>Test</th>
+            <th>Error</th>
+            <th>Classification</th>
+            <th>Reason</th>
+            <th>Fix</th>
         </tr>
-        """
-
-    html += "</table><br><h2>Failure Details</h2><table><tr><th>Test</th><th>Error</th><th>AI Reason</th><th>Fix</th></tr>"
+    """
 
     for r in results:
         html += f"""
         <tr>
             <td>{r['test_name']}</td>
             <td>{r['error']}</td>
+            <td>{r['classification']}</td>
             <td>{r['reason']}</td>
             <td>{r['fix']}</td>
         </tr>
@@ -129,11 +200,61 @@ def generate_report(results, passed, failed, skipped, history):
 
     html += "</table></body></html>"
 
-    with open(main_file, "w") as f:
+    with open(file_path, "w") as f:
         f.write(html)
 
-    # Save snapshot
-    with open(f"flakiness-reports/history_{timestamp}.json", "w") as f:
-        json.dump(history, f, indent=2)
+    return file_path
 
-    return main_file
+
+def generate_flakiness_report(history):
+
+    timestamp = datetime.utcnow().strftime("%Y-%m-%d_%H-%M-%S")
+    file_path = f"flakiness-reports/flakiness_{timestamp}.html"
+
+    html = """
+    <html>
+    <head>
+    <style>
+        body { font-family: Arial; background:#f4f6f8; }
+        table { width:100%; border-collapse: collapse; background:white; }
+        th { background:#34495e; color:white; padding:10px; }
+        td { padding:10px; border-bottom:1px solid #ddd; }
+        .high { color:red; font-weight:bold; }
+        .medium { color:orange; }
+        .low { color:green; }
+    </style>
+    </head>
+    <body>
+
+    <h1>📊 Flakiness Analysis</h1>
+
+    <table>
+        <tr>
+            <th>Test</th>
+            <th>Score</th>
+            <th>Level</th>
+            <th>Total Runs</th>
+            <th>Failures</th>
+        </tr>
+    """
+
+    for test, data in history.items():
+
+        label = data.get("flakiness_label", "low").lower()
+
+        html += f"""
+        <tr>
+            <td>{test}</td>
+            <td>{data.get('flakiness_score')}</td>
+            <td class="{label}">{data.get('flakiness_label')}</td>
+            <td>{data.get('total_runs')}</td>
+            <td>{data.get('total_failures')}</td>
+        </tr>
+        """
+
+    html += "</table></body></html>"
+
+    with open(file_path, "w") as f:
+        f.write(html)
+
+    return file_path
