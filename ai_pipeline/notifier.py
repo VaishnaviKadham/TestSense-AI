@@ -1,6 +1,6 @@
-# import smtplib
-# from email.message import EmailMessage
-# import os
+import smtplib
+from email.message import EmailMessage
+import os
 
 
 # def send_email(file_path):
