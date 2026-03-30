@@ -141,26 +141,23 @@ import json
 import os
 from datetime import datetime
 
-HISTORY_FILE = os.path.join("ai_pipeline", "history.json")
-
+HISTORY_FILE = "ai_pipeline/history.json"
 MAX_RUNS = 10
 MIN_RUNS_REQUIRED = 3
 
 
-def ensure_file():
-    os.makedirs("ai_pipeline", exist_ok=True)
-    if not os.path.exists(HISTORY_FILE):
-        with open(HISTORY_FILE, "w") as f:
-            json.dump({}, f)
-
-
 def load_history():
-    ensure_file()
-    with open(HISTORY_FILE, "r") as f:
-        return json.load(f)
+    if not os.path.exists(HISTORY_FILE):
+        return {}
+    try:
+        with open(HISTORY_FILE, "r") as f:
+            return json.load(f)
+    except:
+        return {}
 
 
 def save_history(data):
+    os.makedirs(os.path.dirname(HISTORY_FILE), exist_ok=True)
     with open(HISTORY_FILE, "w") as f:
         json.dump(data, f, indent=2)
 
@@ -178,43 +175,82 @@ def compute_flakiness(results):
     )
     alternation_rate = transitions / (n - 1)
 
-    score = (failure_rate * 5) + (alternation_rate * 5)
-    score = round(min(score, 10), 2)
+    weighted_failures = 0
+    weighted_total = 0
+    midpoint = n // 2
 
-    label = (
-        "stable" if score <= 1 else
-        "low" if score <= 3 else
-        "medium" if score <= 5.5 else
-        "high" if score <= 7.5 else
-        "critical"
+    for i, r in enumerate(results):
+        weight = 2 if i >= midpoint else 1
+        weighted_total += weight
+        if r == "fail":
+            weighted_failures += weight
+
+    recency_score = weighted_failures / weighted_total
+
+    score = (
+        failure_rate * 4 +
+        alternation_rate * 3.5 +
+        recency_score * 2.5
     )
 
-    return {"score": score, "label": label}
+    score = round(min(score, 10), 2)
+
+    return {"score": score, "label": get_label(score)}
 
 
-def update_flakiness(test_name, failed):
+def get_label(score):
+    if score <= 1:
+        return "stable"
+    elif score <= 3:
+        return "low"
+    elif score <= 5.5:
+        return "medium"
+    elif score <= 7.5:
+        return "high"
+    else:
+        return "critical"
+
+
+def update_flakiness(test_name, status, error="", logs="", classification="", reason=""):
+
     data = load_history()
 
+    # First time test appears
     if test_name not in data:
         data[test_name] = {
-            "history": [],
-            "total_runs": 0,
-            "total_failures": 0
+            "history": ["pass"] * (MIN_RUNS_REQUIRED - 1),
+            "total_runs": MIN_RUNS_REQUIRED - 1,
+            "total_failures": 0,
+            "logs": [],
+            "last_failure_reason": ""
         }
 
     record = data[test_name]
 
-    result = "fail" if failed else "pass"
+    result = "fail" if status in ["FAIL", "SKIPPED"] else "pass"
 
     record["history"].append(result)
     record["history"] = record["history"][-MAX_RUNS:]
 
     record["total_runs"] += 1
-    if failed:
+
+    if result == "fail":
         record["total_failures"] += 1
+        record["last_failure_reason"] = reason
+
+        record["logs"].append({
+            "timestamp": datetime.utcnow().isoformat(),
+            "error": error,
+            "logs": logs,
+            "classification": classification
+        })
+
+        record["logs"] = record["logs"][-5]  # keep last 5 logs
 
     stats = compute_flakiness(record["history"])
 
+    record["flakiness_score"] = stats["score"]
+    record["flakiness_label"] = stats["label"]
     record["last_updated"] = datetime.utcnow().isoformat()
 
     save_history(data)
