@@ -5,12 +5,14 @@ import os
 def send_email(file_path):
 
     msg = EmailMessage()
-    msg['Subject'] = 'AI Test Report'
+    msg['Subject'] = 'AI Flakiness Report'
     msg['From'] = os.getenv("EMAIL_USER")
     msg['To'] = os.getenv("EMAIL_TO")
 
     with open(file_path, 'r') as f:
-        msg.set_content(f.read(), subtype='html')
+        html = f.read()
+
+    msg.add_alternative(html, subtype='html')
 
     with smtplib.SMTP('smtp.gmail.com', 587) as s:
         s.starttls()
