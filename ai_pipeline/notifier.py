@@ -5,7 +5,7 @@ import os
 def send_email(file_path):
 
     msg = EmailMessage()
-    msg['Subject'] = 'AI Flakiness Report'
+    msg['Subject'] = '🚀 AI Flakiness Report'
     msg['From'] = os.getenv("EMAIL_USER")
     msg['To'] = os.getenv("EMAIL_TO")
 
