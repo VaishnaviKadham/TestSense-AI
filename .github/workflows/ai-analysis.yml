@@ -133,6 +133,86 @@
 
 
 
+# name: AI Failure Analysis Pipeline
+
+# on:
+#   push:
+#     paths:
+#       - 'test-results/**'
+#   workflow_dispatch:
+
+# jobs:
+#   ai-analysis:
+#     runs-on: ubuntu-latest
+
+#     steps:
+
+#       - name: Checkout Repo
+#         uses: actions/checkout@v4
+
+#       - name: Set up Python
+#         uses: actions/setup-python@v5
+#         with:
+#           python-version: '3.10'
+
+#       - name: Install Dependencies
+#         run: |
+#           pip install --upgrade pip
+#           pip install -r ai_pipeline/requirements.txt
+
+#       # Ensure history.json exists
+#       - name: Ensure history file exists
+#         run: |
+#           mkdir -p ai_pipeline
+#           if [ ! -f ai_pipeline/history.json ]; then
+#             echo "{}" > ai_pipeline/history.json
+#           fi
+
+#       # Get latest test results folder
+#       - name: Get Latest Test Results Folder
+#         run: |
+#           if ls test-results/run-* 1> /dev/null 2>&1; then
+#             LATEST=$(ls -td test-results/run-* | head -1)
+#           else
+#             LATEST="test-results"
+#           fi
+#           echo "LATEST_FOLDER=$LATEST" >> $GITHUB_ENV
+
+#       # Run AI pipeline
+#       - name: Run AI Analysis
+#         env:
+#           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+#           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+#           JIRA_URL: ${{ secrets.JIRA_URL }}
+#           JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+#           JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+#           EMAIL_USER: ${{ secrets.EMAIL_USER }}
+#           EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+#           EMAIL_TO: ${{ secrets.EMAIL_TO }}
+#           RESULTS_PATH: ${{ env.LATEST_FOLDER }}
+#         run: |
+#           python ai_pipeline/main.py
+
+#       # ✅ SAVE REPORTS (VERY IMPORTANT)
+#       - name: Upload Flakiness Reports
+#         if: always()
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: flakiness-reports
+#           path: flakiness-reports/
+#           retention-days: 30
+
+#       # ✅ SAVE HISTORY (OPTIONAL BUT RECOMMENDED)
+#       - name: Upload History File
+#         if: always()
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: flakiness-history
+#           path: ai_pipeline/history.json
+#           retention-days: 30
+
+
+
 name: AI Failure Analysis Pipeline
 
 on:
@@ -147,20 +227,31 @@ jobs:
 
     steps:
 
+      # -------------------------------
+      # Checkout Code
+      # -------------------------------
       - name: Checkout Repo
         uses: actions/checkout@v4
 
+      # -------------------------------
+      # Setup Python
+      # -------------------------------
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
+      # -------------------------------
+      # Install Dependencies
+      # -------------------------------
       - name: Install Dependencies
         run: |
           pip install --upgrade pip
           pip install -r ai_pipeline/requirements.txt
 
+      # -------------------------------
       # Ensure history.json exists
+      # -------------------------------
       - name: Ensure history file exists
         run: |
           mkdir -p ai_pipeline
@@ -168,7 +259,9 @@ jobs:
             echo "{}" > ai_pipeline/history.json
           fi
 
-      # Get latest test results folder
+      # -------------------------------
+      # Get Latest Test Results Folder
+      # -------------------------------
       - name: Get Latest Test Results Folder
         run: |
           if ls test-results/run-* 1> /dev/null 2>&1; then
@@ -177,8 +270,11 @@ jobs:
             LATEST="test-results"
           fi
           echo "LATEST_FOLDER=$LATEST" >> $GITHUB_ENV
+          echo "Using results folder: $LATEST"
 
-      # Run AI pipeline
+      # -------------------------------
+      # Run AI Pipeline
+      # -------------------------------
       - name: Run AI Analysis
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -193,20 +289,42 @@ jobs:
         run: |
           python ai_pipeline/main.py
 
-      # ✅ SAVE REPORTS (VERY IMPORTANT)
-      - name: Upload Flakiness Reports
+      # -------------------------------
+      # Upload Flakiness Report (FIXED PATH ✅)
+      # -------------------------------
+      - name: Upload Flakiness Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: flakiness-reports
-          path: flakiness-reports/
+          name: flakiness-report
+          path: ${{ env.LATEST_FOLDER }}/flakiness-report/
           retention-days: 30
 
-      # ✅ SAVE HISTORY (OPTIONAL BUT RECOMMENDED)
-      - name: Upload History File
+      # -------------------------------
+      # Upload History File
+      # -------------------------------
+      - name: Upload Flakiness History
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: flakiness-history
           path: ai_pipeline/history.json
           retention-days: 30
+
+      # -------------------------------
+      # (OPTIONAL) Commit Report to Repo
+      # -------------------------------
+      - name: Commit Reports to Repo
+        if: always()
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+
+          git add .
+          git commit -m "Add flakiness report [auto]" || echo "No changes to commit"
+          git push
+
+
+
+
+
