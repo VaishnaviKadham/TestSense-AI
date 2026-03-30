@@ -364,7 +364,7 @@ client = genai.Client(
 )
 
 # Use stable free model
-MODEL = "gemini-2.5-flash-lite"
+MODEL = "gemini-2.5-flash"
 
 # Full system prompt (restored)
 SYSTEM_PROMPT = """You are an expert SDET and SRE.
