@@ -2,17 +2,31 @@ import smtplib
 from email.message import EmailMessage
 import os
 
-def send_email(file_path):
+
+def send_email(ai_report, flakiness_report):
 
     msg = EmailMessage()
-    msg['Subject'] = '🚀 AI Flakiness Report'
+    msg['Subject'] = '🚀 AI QA Reports'
     msg['From'] = os.getenv("EMAIL_USER")
     msg['To'] = os.getenv("EMAIL_TO")
 
-    with open(file_path, 'r') as f:
-        html = f.read()
+    msg.set_content("AI Reports Attached")
 
-    msg.add_alternative(html, subtype='html')
+    with open(ai_report, "rb") as f:
+        msg.add_attachment(
+            f.read(),
+            maintype="text",
+            subtype="html",
+            filename="ai_report.html"
+        )
+
+    with open(flakiness_report, "rb") as f:
+        msg.add_attachment(
+            f.read(),
+            maintype="text",
+            subtype="html",
+            filename="flakiness_report.html"
+        )
 
     with smtplib.SMTP('smtp.gmail.com', 587) as s:
         s.starttls()
