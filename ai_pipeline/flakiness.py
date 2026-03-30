@@ -245,9 +245,10 @@ def update_flakiness(test_name, status, error="", logs="", classification="", re
             "classification": classification
         })
 
-       if not isinstance(record.get("logs"), list):
-           record["logs"] = []
+       # if not isinstance(record.get("logs"), list):
+           # record["logs"] = []
 
+    record["logs"] = record["logs"][-5:] 
     stats = compute_flakiness(record["history"])
 
     record["flakiness_score"] = stats["score"]
