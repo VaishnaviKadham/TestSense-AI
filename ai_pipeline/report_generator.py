@@ -90,7 +90,7 @@ def generate_report(results, passed, failed, skipped, history):
         </tr>
         """
 
-    # ✅ UPDATED TABLE (ADDED CLASSIFICATION COLUMN)
+    # UPDATED TABLE (ADDED CLASSIFICATION COLUMN)
     html += """
     </table>
     <br>
