@@ -56,7 +56,7 @@ def update_flakiness(test_name, status, error="", logs="", classification="", re
     if status != "PASS":
         record["total_failures"] += 1
 
-        # SAFE LOG HANDLING ✅
+        # SAFE LOG HANDLING 
         if logs:
             record["logs"].append({
                 "error": error,
