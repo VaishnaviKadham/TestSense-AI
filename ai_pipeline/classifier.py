@@ -4,20 +4,16 @@ import json
 import re
 import logging
 from typing import List, Dict
-
 from google import genai
 
 logger = logging.getLogger(__name__)
 
-# Gemini client (new SDK)
 client = genai.Client(
     api_key=os.getenv("GEMINI_API_KEY")
 )
 
-# Use stable free model
 MODEL = "gemini-2.5-flash-lite"
 
-# Full system prompt (restored)
 SYSTEM_PROMPT = """You are an expert SDET and SRE.
 
 Classify failures into:
@@ -72,7 +68,7 @@ def classify_failures_batch(failures: List[Dict], retries=3):
     if not failures:
         return []
 
-    # keep batch small for Gemini stability
+    
     failures = failures[:5]
 
     prompt = build_prompt(failures)
@@ -100,13 +96,11 @@ def classify_failures_batch(failures: List[Dict], retries=3):
 
 def extract_json(text: str):
 
-    # Try strict JSON first
     try:
         return json.loads(text)
     except:
         pass
 
-    # Try extracting JSON array
     match = re.search(r"\[[\s\S]+\]", text)
     if match:
         try:
