@@ -65,7 +65,7 @@ def run():
             "test_name": t["test_name"],
             "status": t["status"],
             "error": t["error"],
-            "classification": classification,   # ✅ IMPORTANT
+            "classification": classification,   
             "reason": reason,
             "fix": fix,
             "jira": jira,
