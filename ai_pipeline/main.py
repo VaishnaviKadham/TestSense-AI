@@ -31,7 +31,6 @@ def run():
 
             failures.append(t)
 
-    # ✅ FIX: process ALL failures one by one (no missing AI results)
     ai_results = []
 
     for f in failures:
