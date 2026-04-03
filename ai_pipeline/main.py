@@ -48,9 +48,9 @@ def run():
         reason = ai.get("reason", "")
         fix = ai.get("fix", "")
 
-        jira = None
-        if classification == "CODE_BUG":
-            jira = create_jira_bug(t["test_name"], t["error"], reason)
+        # jira = None
+        # if classification == "CODE_BUG":
+        #     jira = create_jira_bug(t["test_name"], t["error"], reason)
 
         flaky = update_flakiness(
             t["test_name"],
